@@ -9,7 +9,7 @@ def showImage(img):
     plt.imshow(tmp, cmap = cm.Greys)
     plt.show()
 
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("../../DataSets/MNIST/", one_hot=True)
 
 x = tf.placeholder(tf.float32, [None, 10])
 W = tf.Variable(tf.zeros([10, 784]))
