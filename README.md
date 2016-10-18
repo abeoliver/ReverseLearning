@@ -22,19 +22,17 @@ We want to return to the Intel International Science and Engineering Fair and pl
 
 ##### Contact Us
 Are you an expert in neural networks?
-
 Are you interested in giving advice to aspiring, young coders?
-
 Are you interested in reverse networks?
-Do you have any other questions? \
-\
-**Abe Oliver** \
-Email : _abeoliver.116@gmail.com_ \
-Twitter : _@abeoliver__\
-\
-**Jadan Ercoli** \
-Email : _docjadan@yahoo.com_ \
+Do you have any other questions?
+
+**Abe Oliver**
+Email : _abeoliver.116@gmail.com_
+Twitter : _@abeoliver__
+
+**Jadan Ercoli**
+Email : _docjadan@yahoo.com_
 Twitter : _@wise_wrangler_
-\
-\
+
+
 Copyright 2016 Abraham Oliver, Jadan Ercoli
