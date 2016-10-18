@@ -1,17 +1,21 @@
-# **ScienceFair2016**
+# **ReverseLearning**
 ### Abraham Oliver and Jadan Ercoli
 
 #### Who we are
 The home of the 2016/2017 Science Fair project of Abe and Jadan
 
-
 #### Goal
 We want to return to the Intel International Science and Engineering Fair and place in the Systems Software catagory
 
-#### This year's project theme: **Neural Networks**
+#### This year's project theme: **Neural Network Inverses**
 * Can they be reverse engineered?
 * Can a possible input be engineered from a desired output?
 * What are the applications of inverse networks?
+* What are the methods?
+* Which method is the fastest?
+* Which method is the most accurate?
+* What are the security concerns?
+* What are some counter measures to fix these concerns?
 
 #### Required packages
 * Python version 2.7
