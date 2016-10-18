@@ -7,7 +7,7 @@ The home of the 2016/2017 Science Fair project of Abe and Jadan
 #### Goal
 We want to return to the Intel International Science and Engineering Fair and place in the Systems Software catagory
 
-#### This year's project theme: **Neural Network Inverses**
+#### This year's project theme: **Neural Networks and their Inverses**
 * Can they be reverse engineered?
 * Can a possible input be engineered from a desired output?
 * What are the applications of inverse networks?
