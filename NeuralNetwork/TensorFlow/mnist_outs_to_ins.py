@@ -59,7 +59,7 @@ def calcAccuracy(margin = .005):
     corrects = tf.cast(tf.less_equal(diff, margin), tf.float32)
     accuracy = tf.reduce_mean(corrects)
     print(sess.run(accuracy, feed_dict={x: mnist.test.labels, y_: mnist.test.images}))
-print(AcalcAccuracy())
+print(calcAccuracy())
 
 def compute(INPUT):
     """Shows the network's output image from a label vector input"""
