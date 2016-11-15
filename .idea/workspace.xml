@@ -2,7 +2,16 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ce8f9c55-f25b-43f1-b34e-0f51f1ae3208" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/MNIST Labels to Image-Copy1-checkpoint.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/Untitled-checkpoint.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Labels to Image-Copy1.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/Untitled.ipynb" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/MNIST Labels to Image-checkpoint.ipynb" afterPath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/MNIST Labels to Image-checkpoint.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Input Backprop.ipynb" afterPath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Input Backprop.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Labels to Image.ipynb" afterPath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Labels to Image.ipynb" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py" afterPath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py" afterPath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py" />
     </list>
     <ignored path="ReverseLearning.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -16,7 +25,7 @@
   </component>
   <component name="CoverageDataManager">
     <SUITE FILE_PATH="coverage/ReverseLearning$mnist_outs_to_ins.coverage" NAME="mnist_outs_to_ins Coverage Results" MODIFIED="1479241759407" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/NeuralNetwork/TensorFlow" />
-    <SUITE FILE_PATH="coverage/ReverseLearning$mnist_softmax_tutorial.coverage" NAME="mnist_softmax_tutorial Coverage Results" MODIFIED="1479241845383" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/NeuralNetwork/TensorFlow" />
+    <SUITE FILE_PATH="coverage/ReverseLearning$mnist_softmax_tutorial.coverage" NAME="mnist_softmax_tutorial Coverage Results" MODIFIED="1479244774961" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/NeuralNetwork/TensorFlow" />
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -37,22 +46,14 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="mnist_outs_to_ins.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1344">
-              <caret line="64" column="27" selection-start-line="64" selection-start-column="27" selection-end-line="64" selection-end-column="27" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="mnist_softmax_tutorial.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="96">
-              <caret line="5" column="58" selection-start-line="5" selection-start-column="58" selection-end-line="5" selection-end-column="58" />
-              <folding />
+            <state relative-caret-position="281">
+              <caret line="28" column="108" selection-start-line="28" selection-start-column="108" selection-end-line="28" selection-end-column="108" />
+              <folding>
+                <element signature="e#50#73#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -84,6 +85,7 @@
       <list>
         <option value="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_backprop_inputs.py" />
         <option value="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py" />
+        <option value="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py" />
       </list>
     </option>
   </component>
@@ -500,7 +502,7 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32843792" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22542372" sideWeight="0.4969651" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22542372" sideWeight="0.4969651" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -565,7 +567,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#50#73#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -581,15 +585,19 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#50#73#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1344">
-          <caret line="64" column="27" selection-start-line="64" selection-start-column="27" selection-end-line="64" selection-end-column="27" />
-          <folding />
+        <state relative-caret-position="144">
+          <caret line="54" column="39" selection-start-line="54" selection-start-column="39" selection-end-line="54" selection-end-column="39" />
+          <folding>
+            <element signature="e#236#273#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -603,9 +611,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="96">
-          <caret line="5" column="58" selection-start-line="5" selection-start-column="58" selection-end-line="5" selection-end-column="58" />
-          <folding />
+        <state relative-caret-position="281">
+          <caret line="28" column="108" selection-start-line="28" selection-start-column="108" selection-end-line="28" selection-end-column="108" />
+          <folding>
+            <element signature="e#50#73#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
