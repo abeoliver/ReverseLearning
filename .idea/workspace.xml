@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
+<<<<<<< master
     <list default="true" id="f400d8c1-d399-4caa-bbd5-5614f13fc9a1" name="Default" comment="">
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/NeuralNetwork/Network.py" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/NetworkTemplate-checkpoint.ipynb" />
@@ -9,6 +10,19 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/abe.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/abe.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
+=======
+    <list default="true" id="ce8f9c55-f25b-43f1-b34e-0f51f1ae3208" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/MNIST Labels to Image-Copy1-checkpoint.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/Untitled-checkpoint.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Labels to Image-Copy1.ipynb" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/Untitled.ipynb" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/MNIST Labels to Image-checkpoint.ipynb" afterPath="$PROJECT_DIR$/NeuralNetwork/Notebooks/.ipynb_checkpoints/MNIST Labels to Image-checkpoint.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Input Backprop.ipynb" afterPath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Input Backprop.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Labels to Image.ipynb" afterPath="$PROJECT_DIR$/NeuralNetwork/Notebooks/MNIST Labels to Image.ipynb" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py" afterPath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py" afterPath="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py" />
+>>>>>>> Notebook Improvements
     </list>
     <ignored path="ReverseLearning.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -21,7 +35,12 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="CoverageDataManager">
+<<<<<<< master
     <SUITE FILE_PATH="coverage/ReverseLearning$NetworkTemplate.coverage" NAME="NetworkTemplate Coverage Results" MODIFIED="1479869617759" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/NeuralNetwork/TensorFlow" />
+=======
+    <SUITE FILE_PATH="coverage/ReverseLearning$mnist_outs_to_ins.coverage" NAME="mnist_outs_to_ins Coverage Results" MODIFIED="1479241759407" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/NeuralNetwork/TensorFlow" />
+    <SUITE FILE_PATH="coverage/ReverseLearning$mnist_softmax_tutorial.coverage" NAME="mnist_softmax_tutorial Coverage Results" MODIFIED="1479244774961" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/NeuralNetwork/TensorFlow" />
+>>>>>>> Notebook Improvements
   </component>
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
@@ -44,6 +63,7 @@
           </provider>
         </entry>
       </file>
+<<<<<<< master
       <file leaf-file-name="NetworkTemplate.ipynb" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NeuralNetwork/Notebooks/NetworkTemplate.ipynb">
           <provider selected="true" editor-type-id="ipnb-editor">
@@ -62,6 +82,15 @@
                 <element signature="e#107#144#0" expanded="true" />
                 <element signature="e#2003#2187#0" expanded="false" />
                 <element signature="e#3695#3855#0" expanded="false" />
+=======
+      <file leaf-file-name="mnist_softmax_tutorial.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="281">
+              <caret line="28" column="108" selection-start-line="28" selection-start-column="108" selection-end-line="28" selection-end-column="108" />
+              <folding>
+                <element signature="e#50#73#0" expanded="true" />
+>>>>>>> Notebook Improvements
               </folding>
             </state>
           </provider>
@@ -82,9 +111,15 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
+<<<<<<< master
         <option value="$PROJECT_DIR$/NeuralNetwork/Notebooks/NetworkTemplate.ipynb" />
         <option value="$PROJECT_DIR$/NeuralNetwork/TensorFlow/NetworkTemplate.py" />
         <option value="$PROJECT_DIR$/NeuralNetwork/Network.py" />
+=======
+        <option value="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_backprop_inputs.py" />
+        <option value="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_outs_to_ins.py" />
+        <option value="$PROJECT_DIR$/NeuralNetwork/TensorFlow/mnist_softmax_tutorial.py" />
+>>>>>>> Notebook Improvements
       </list>
     </option>
   </component>
@@ -428,6 +463,10 @@
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+<<<<<<< master
+=======
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.22542372" sideWeight="0.4969651" order="2" side_tool="false" content_ui="tabs" />
+>>>>>>> Notebook Improvements
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -480,12 +519,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/NetworkTemplate.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< master
         <state relative-caret-position="1800">
           <caret line="75" column="21" selection-start-line="75" selection-start-column="21" selection-end-line="75" selection-end-column="21" />
           <folding>
             <element signature="e#107#144#0" expanded="true" />
             <element signature="e#2003#2187#0" expanded="false" />
             <element signature="e#3695#3855#0" expanded="false" />
+=======
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#50#73#0" expanded="true" />
+>>>>>>> Notebook Improvements
           </folding>
         </state>
       </provider>
@@ -511,12 +557,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/NetworkTemplate.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< master
         <state relative-caret-position="768">
           <caret line="32" column="33" selection-start-line="32" selection-start-column="33" selection-end-line="32" selection-end-column="33" />
           <folding>
             <element signature="e#107#144#0" expanded="true" />
             <element signature="e#2003#2187#0" expanded="false" />
             <element signature="e#3695#3855#0" expanded="false" />
+=======
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#50#73#0" expanded="true" />
+>>>>>>> Notebook Improvements
           </folding>
         </state>
       </provider>
@@ -530,6 +583,7 @@
     </entry>
     <entry file="file:///usr/local/lib/python2.7/dist-packages/tensorflow/python/ops/math_ops.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< master
         <state relative-caret-position="121">
           <caret line="758" column="0" selection-start-line="758" selection-start-column="0" selection-end-line="758" selection-end-column="0" />
         </state>
@@ -539,6 +593,13 @@
       <provider selected="true" editor-type-id="ipnb-editor">
         <state>
           <selected id="2" />
+=======
+        <state relative-caret-position="144">
+          <caret line="54" column="39" selection-start-line="54" selection-start-column="39" selection-end-line="54" selection-end-column="39" />
+          <folding>
+            <element signature="e#236#273#0" expanded="true" />
+          </folding>
+>>>>>>> Notebook Improvements
         </state>
       </provider>
     </entry>
@@ -568,12 +629,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NeuralNetwork/TensorFlow/NetworkTemplate.py">
       <provider selected="true" editor-type-id="text-editor">
+<<<<<<< master
         <state relative-caret-position="24">
           <caret line="75" column="21" selection-start-line="75" selection-start-column="21" selection-end-line="75" selection-end-column="21" />
           <folding>
             <element signature="e#107#144#0" expanded="true" />
             <element signature="e#2003#2187#0" expanded="false" />
             <element signature="e#3695#3855#0" expanded="false" />
+=======
+        <state relative-caret-position="281">
+          <caret line="28" column="108" selection-start-line="28" selection-start-column="108" selection-end-line="28" selection-end-column="108" />
+          <folding>
+            <element signature="e#50#73#0" expanded="true" />
+>>>>>>> Notebook Improvements
           </folding>
         </state>
       </provider>
