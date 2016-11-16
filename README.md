@@ -2,7 +2,7 @@
 ### Abraham Oliver and Jadan Ercoli
 
 #### Who we are
-The home of the 2016/2017 Science Fair project of Abe and Jadan
+Two high school students with no formal training passionate about computer science and the world around us.
 
 #### Goal
 We want to return to the Intel International Science and Engineering Fair and place in the Systems Software catagory
