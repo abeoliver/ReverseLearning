@@ -6,3 +6,5 @@
 
 # Import Tensorflow
 import tensorflow as tf
+# Import Numpy
+import numpy as np
