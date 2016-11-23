@@ -74,6 +74,7 @@ w = [tf.Variable(tf.zeros([LAYERS[n], LAYERS[n + 1]]), name="w{0}".format(n)) fo
 b = [tf.Variable(tf.ones([LAYERS[n + 1]]), name="b{0}".format(n)) for n in range(len(LAYERS) - 1)]
 # Output
 def calc(inp, n = 0):
+    """Recursive method to compute a network of variable size"""
     if n == len(LAYERS) - 2:
         return tf.matmul(inp, w[n]) + b[n]
     return calc(tf.matmul(inp, w[n]) + b[n], n + 1)
