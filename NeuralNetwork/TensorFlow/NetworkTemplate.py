@@ -47,7 +47,7 @@ def newSet(size):
 LAYERS = [3, 1]
 # HYPERPARAMETERS
 LEARN_RATE = .01
-EPOCHS = 10000
+EPOCHS = 4000
 BATCH_SIZE = 200
 # SETTINGS
 DEBUG = True
@@ -81,7 +81,7 @@ y = calc(x)
 # Label
 y_ = tf.placeholder(tf.float32, [None, LAYERS[-1]], name="y_")
 # Loss function
-loss = tf.reduce_mean(tf.pow(y_ - y, 2))
+loss = tf.pow(tf.reduce_mean(y_ - y), 2)
 # Training step
 train_step = tf.train.ProximalGradientDescentOptimizer(LEARN_RATE).minimize(loss)
 
@@ -95,7 +95,7 @@ target = tf.constant(INPUT_BACKPROP_TARGET)
 # Loss
 IB_loss = tf.pow(tf.reduce_mean(target - out), 2)
 # Training
-IB_train_step = tf.train.ProximalGradientDescentOptimizer(LEARN_RATE).minimize(IB_loss)
+IB_train_step = tf.train.ProximalGradientDescentOptimizer(LEARN_RATE).minimize(IB_loss, var_list = [optimal])
 
 
 # Train model (CUSTOMIZATION NOT NEEDED)
@@ -135,7 +135,6 @@ def predict(INPUT):
         INPUT - input vector. FORM: [[x0, x1, x2, ..., x(n-1)]] for n inputs
     """
     return calc(INPUT).eval()
-
 
 # Perform input backprop
 for i in range(INPUT_BACKPROP_EPOCHS): sess.run(IB_train_step)
