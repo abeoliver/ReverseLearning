@@ -15,11 +15,6 @@ import numpy as np
 # Import tools for image visualization
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-def showImage(img):
-    """Display image of recovered digit"""
-    tmp = img.reshape((28,28))
-    plt.imshow(tmp, cmap = cm.Greys)
-    plt.show()
 
 # Initiate dataset
 from tensorflow.examples.tutorials.mnist import input_data
@@ -59,7 +54,14 @@ def calcAccuracy(margin = .005):
     corrects = tf.cast(tf.less_equal(diff, margin), tf.float32)
     accuracy = tf.reduce_mean(corrects)
     print(sess.run(accuracy, feed_dict={x: mnist.test.labels, y_: mnist.test.images}))
-print(AcalcAccuracy())
+print(calcAccuracy())
+
+
+def showImage(img):
+    """Display image of recovered digit"""
+    tmp = img.reshape((28,28))
+    plt.imshow(tmp, cmap = cm.Greys)
+    plt.show()
 
 def compute(INPUT):
     """Shows the network's output image from a label vector input"""
