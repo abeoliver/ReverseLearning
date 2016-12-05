@@ -28,8 +28,11 @@ class Network (object):
             - Weights are initialized as zeros
             - Biases are initialized as ones
         """
-        # TODO self.w and self.b needed
+        # TODO add to docstring
+        self._session = tf.Session()
         self.layers = layers
+        self.w = np.array([0])
+        self.b = np.array([0])
         self.initValues()
 
     def initValues(self):
@@ -37,9 +40,9 @@ class Network (object):
         Initializes network weights and biases
         """
         self.initWeights()
-        # TODO biases
+        self.initBiases()
 
-    def initWeights(self, mode = "zeros", mean = 0, stddev = 1, preset = []):
+    def initWeights(self, mode = "zeros", mean = 0.0, stddev = 1.0, preset = []):
         """
         Initializes weights with either zeros, ones, randoms, or a preset set
 
@@ -50,19 +53,28 @@ class Network (object):
                                 - "random" : random values with mean and standard deviation  set
                                 - "preset" : a predefined set of values, mode is overridden if present is given
         """
-        # TODO actually write this function
+        # TODO add options code
+        # TODO fix docstring
         if preset != []:
             # Check if compatible shape
             pass
         elif mode == "random":
             # Random
-            pass
+            self.w = [np.random.normal(mean, stddev, (self.layers[n], self.layers[n + 1]))
+                      for n in range(len(self.layers) - 1)]
         elif mode == "ones":
             # All ones
             pass
         else:
             # Zeros
-            pass
+            self.w = [np.zeros((self.layers[n], self.layers[n + 1]))
+                      for n in range(len(self.layers) - 1)]
+
+    def initBiases(self):
+        """"""
+        # TODO write docstring
+        # TODO add options
+        self.b = [np.ones([self.layers[n + 1]]) for n in range(len(self.layers) - 1)]
 
     def feed(self, input):
         """
@@ -72,7 +84,7 @@ class Network (object):
             - input (Tensor, Nd-array,  list) : input to feed through
         """
         # TODO clean input
-        # TODO test this
+        # TODO DEBUG
         def calc(inp, n = 0):
             """Recursive function for feeding through layers"""
             if n == len(self.layers) - 2:
