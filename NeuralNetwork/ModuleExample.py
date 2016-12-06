@@ -5,8 +5,6 @@
 import tensorflow as tf
 from Network import Network
 
-n = Network([1,2,3,4])
-print n.layers
-print n.w
-print n.b
-print n.feed([2.0])
+n = Network([1, 1])
+n.initWeights(mode="zeros")
+print n.feed([1.0]).eval(session=n._session)
