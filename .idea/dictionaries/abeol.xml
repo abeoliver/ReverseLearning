@@ -4,6 +4,8 @@
       <w>autocorrect</w>
       <w>inps</w>
       <w>ityp</w>
+      <w>mnist</w>
+      <w>ndarrays</w>
       <w>tensorflow</w>
     </words>
   </dictionary>
