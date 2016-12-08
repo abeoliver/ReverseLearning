@@ -72,14 +72,42 @@ class Network (object):
             pass
         else:
             # Zeros
-            self.w = [np.zeros((self.layers[n], self.layers[n + 1]), dtype = np.float32)
+            w = [np.zeros((self.layers[n], self.layers[n + 1]), dtype = np.float32)
                       for n in range(len(self.layers) - 1)]
+            self.w = np.array(w)
 
     def initBiases(self):
         """"""
         # TODO write initBiases docstring
         # TODO add initBiases options
-        self.b = [np.ones([self.layers[n + 1]]) for n in range(len(self.layers) - 1)]
+        b = [np.ones([self.layers[n + 1]], dtype = np.float32) for n in range(len(self.layers) - 1)]
+        self.b = np.array(b)
+
+    def clean(self, input_vector):
+        """Clean input"""
+        # All entries must be floats
+        if type(input_vector) == list or type(input_vector) == np.ndarray:
+            for i in range(len(input_vector)):
+                if type(input_vector[i]) == int:
+                    input_vector[i] = float(input_vector[i])
+                elif type(input_vector[i]) == list or type(input_vector[i]) == np.ndarray or \
+                                type(input_vector[i]) == tf.Variable or type(input_vector[i]) == tf.constant:
+                    for j in range(len(input_vector[i])):
+                        if type(input_vector[i][j]) == int: input_vector[i][j] = float(input_vector[i][j])
+        # Input must be a list, array, or tensor
+        ityp = type(input_vector)
+        if ityp != list and ityp != np.ndarray and ityp != tf.Variable and ityp != tf.constant:
+            if (ityp == int or ityp == float) and autocorrect:
+                input_vector = [[float(input_vector)]]
+            else:
+                raise TypeError  # TODO Error to replace
+        # Input must be a list, array, or tensor of lists, arrays, or tensors TODO Error to replace
+        ityp2 = type(input_vector[0])
+        if ityp2 != list and ityp2 != np.ndarray and ityp2 != tf.Variable and ityp2 != tf.constant:
+            if ityp2 == int or ityp2 == float:
+                input_vector = [input_vector]
+            else:
+                raise TypeError  # TODO Error to replace
 
     def feed(self, input_vector, autocorrect = True):
         """
@@ -98,51 +126,67 @@ class Network (object):
             return calc(tf.matmul(inp, self.w[n]) + self.b[n], n + 1)
 
         # Clean input_vector
-        # All entries must be floats
-        if type(input_vector) == list or type(input_vector) == np.ndarray:
-            for i in range(len(input_vector)):
-                if type(input_vector[i]) == int: input_vector[i] = float(input_vector[i])
-                elif type(input_vector[i]) == list or type(input_vector[i]) == np.ndarray or \
-                    type(input_vector[i]) == tf.Variable or type(input_vector[i]) == tf.constant:
-                    for j in range(len(input_vector[i])):
-                        if type(input_vector[i][j]) == int: input_vector[i][j] = float(input_vector[i][j])
-        # Input must be a list, array, or tensor
-        ityp = type(input_vector)
-        if ityp != list and ityp != np.ndarray and ityp != tf.Variable and ityp != tf.constant:
-            if (ityp == int or ityp == float) and autocorrect: input_vector = [[float(input_vector)]]
-            else: raise TypeError # TODO Error to replace
-        # Input must be a list, array, or tensor of lists, arrays, or tensors TODO Error to replace
-        ityp2 = type(input_vector[0])
-        if ityp2 != list and ityp2 != np.ndarray and ityp2 != tf.Variable and ityp2 != tf.constant:
-            if ityp2 == int or ityp2 == float: input_vector = [input_vector]
-            else: raise TypeError # TODO Error to replace
+        self.clean(input_vector)
 
         # Begin and return recursively calculated output
+        # TODO same shaping function for feed and train
         return calc(input_vector)
 
     def train(self, data, epochs, learn_rate, miniBatches = 0, loss = "mean_squared",
               optimizer = "proximal_gradient", debug = False, debug_interval = 2000):
         # TODO Finish basic train function
+        # TODO Break train into smaller functions
+        # TODO Clean data function
+        # Clean data
+        epochs = int(epochs)
+        learn_rate = float(learn_rate)
+        miniBatches = int(miniBatches)
+        # Parameters
+        # Input
+        x = tf.placeholder(tf.float32, [None, self.layers[0]], name = "x")
+        # Weights
+        w = [tf.Variable(self.w[i], name = "w") for i in range(len(self.w))]
+        # Biases
+        b = [tf.Variable(self.b[i], name = "b") for i in range(len(self.b))]
+        self._session.run(tf.initialize_all_variables())
+        # Predicted output
+        def calc(inp, n=0):
+            """Recursive function for feeding through layers"""
+            if n == len(self.layers) - 2:
+                return tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
+            return calc(tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n], n + 1)
+        # TODO shaping functions
+        y = calc(x)
+        # Labels
+        y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
+
         # Loss function TODO Add more loss functions
-        loss = tf.reduce_mean(tf.pow(y_ - y, 2))
-
+        loss = tf.reduce_mean(tf.reduce_sum(tf.pow(y - y_, 2), reduction_indices=[1]))
         # Optimizer TODO Add more optimizers
+        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
+        # TODO Minibatches
         # Initialize variables
-        sess.run(tf.initialize_all_variables())
-
+        self._session.run(tf.initialize_all_variables())
         print "TRAINING",
+        with self._session .as_default():
+            for i in range(epochs):
+                # Get data
+                batch_inps, batch_outs = data
+                # Debug printing
+                if i % debug_interval == 0 and debug:
+                    print("Weights ::")
+                    for i in w:
+                        print(i.eval())
+                    print("Biases ::")
+                    for i in b:
+                        print(i.eval())
+                    print("Loss :: {0}\n\n".format(loss.eval(feed_dict={x: batch_inps, y_: batch_outs})))
+                self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
 
-        for i in range(EPOCHS):
-            # Get data
-            batch_inps, batch_outs = newSet(BATCH_SIZE)
-
-            # Debug printing
-            if i % DEBUG_INTERVAL == 0 and DEBUG:
-                print("Weights ::")
-                for i in w:
-                    print(i.eval())
-                print("Biases ::")
-                for i in b:
-                    print(i.eval())
-                print("Loss :: {0}\n\n".format(loss.eval(feed_dict={x: batch_inps, y_: batch_outs})))
+            # Save weights and biases
+            # Turn variables into ndarrays
+            save_w = [i.eval() for i in w]
+            save_b = [i.eval() for i in b]
+            self.w = np.array(save_w)
+            self.b = np.array(save_b)
