@@ -65,23 +65,23 @@ class Network (object):
             pass
         elif mode == "random":
             # Random
-            self.w = [np.random.normal(mean, stddev, (self.layers[n], self.layers[n + 1]))
+            self.w = [np.random_normal(mean, stddev, (self.layers[n], self.layers[n + 1]))
                       for n in range(len(self.layers) - 1)]
         elif mode == "ones":
             # All ones
             pass
         else:
             # Zeros
-            w = [np.zeros((self.layers[n], self.layers[n + 1]), dtype = np.float32)
+            self.w = [tf.ones((self.layers[n], self.layers[n + 1]))
                       for n in range(len(self.layers) - 1)]
-            self.w = np.array(w)
+            #self.w = np.array(w)
 
     def initBiases(self):
         """"""
         # TODO write initBiases docstring
         # TODO add initBiases options
-        b = [np.ones([self.layers[n + 1]], dtype = np.float32) for n in range(len(self.layers) - 1)]
-        self.b = np.array(b)
+        self.b = [tf.ones([self.layers[n + 1]]) for n in range(len(self.layers) - 1)]
+        #self.b = np.array(b)
 
     def clean(self, input_vector):
         """Clean input"""
@@ -161,7 +161,8 @@ class Network (object):
         y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
-        loss = tf.reduce_mean(tf.reduce_sum(tf.pow(y - y_, 2), reduction_indices=[1]))
+        # loss = tf.reduce_mean(tf.reduce_sum(tf.pow(y - y_, 2), reduction_indices=[1]))
+        loss = tf.reduce_mean(tf.pow(y_ - y, 2))
         # Optimizer TODO Add more optimizers
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
