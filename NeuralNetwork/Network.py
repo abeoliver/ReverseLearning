@@ -72,7 +72,7 @@ class Network (object):
             pass
         else:
             # Zeros
-            self.w = [tf.ones((self.layers[n], self.layers[n + 1]))
+            self.w = [tf.zeros((self.layers[n], self.layers[n + 1]))
                       for n in range(len(self.layers) - 1)]
             #self.w = np.array(w)
 
@@ -161,8 +161,7 @@ class Network (object):
         y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
-        # loss = tf.reduce_mean(tf.reduce_sum(tf.pow(y - y_, 2), reduction_indices=[1]))
-        loss = tf.reduce_mean(tf.pow(y_ - y, 2))
+        loss = tf.reduce_mean(tf.reduce_sum(tf.pow(y - y_, 2), 0))
         # Optimizer TODO Add more optimizers
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
@@ -182,7 +181,9 @@ class Network (object):
                     print("Biases ::")
                     for i in b:
                         print(i.eval())
-                    print("Loss :: {0}\n\n".format(loss.eval(feed_dict={x: batch_inps, y_: batch_outs})))
+                    print("Loss :: {0}".format(loss.eval(feed_dict={x: batch_inps, y_: batch_outs})))
+                    #print("OUT :: {0}".format(y.eval(feed_dict = {x: batch_inps, y_:batch_outs})))
+                    print("\n\n")
                 self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
 
             # Save weights and biases

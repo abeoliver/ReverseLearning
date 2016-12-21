@@ -16,11 +16,12 @@ def newSet(size, inputs = 3):
         labels.append([sum(newInputs)])
     return (data, labels)
 
-n = Network([3, 1])
+n = Network([2, 1])
 n.initWeights(mode="zeros")
-n.train(newSet(100, inputs = 3), 20, .01, debug = True, debug_interval = 1)
+n.train(newSet(100, inputs = 2), epochs = 21, learn_rate = .01,
+        debug = True, debug_interval = 2)
 
-p = newSet(1)
+p = newSet(1, inputs = 2)
 a = n.feed(p[0])
 print p[0]
 print a.eval(session = n._session)
