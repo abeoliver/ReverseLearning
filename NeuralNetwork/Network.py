@@ -130,7 +130,7 @@ class Network (object):
 
         # Begin and return recursively calculated output
         # TODO same shaping function for feed and train
-        return calc(input_vector)
+        return tf.nn.softmax(calc(input_vector))
 
     def train(self, data, epochs, learn_rate, miniBatches = 0, loss = "mean_squared",
               optimizer = "proximal_gradient", debug = False, debug_interval = 2000):
@@ -156,7 +156,7 @@ class Network (object):
                 return tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
             return calc(tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n], n + 1)
         # TODO shaping functions
-        y = calc(x)
+        y = tf.nn.softmax(calc(x))
         # Labels
         y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
