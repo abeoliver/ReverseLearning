@@ -6,8 +6,10 @@ import tensorflow as tf
 import numpy as np
 from Network import Network
 import json
-from random import randint
+from random import randint, random
 
+# WIne
+"""
 f = open('../DataSets/WineQuality/winequality-red.json')
 data = json.load(f)
 f.close()
@@ -16,6 +18,7 @@ columns = ["fixed acidity", "volatile acidity", "citric acid", "residual sugar",
                "chlorides", "free sulfur dioxide", "total sulfur dioxide", "density",
                "pH", "sulphates", "alcohol"]
 
+# Wine New Set
 def newSet(data, size):
     xs = []     # Data
     ys = []     # Labels
@@ -40,21 +43,33 @@ def newSet(data, size):
         f[id] = 1
         ys.append(f)
     return (xs, ys)
+"""
+
+# Addition dataset
+def newSet(size, ins = 2):
+    """EXAMPLE"""
+    data = []
+    labels = []
+    for s in range(size):
+        newInputs = [random() * randint(-100, 100) for i in range(ins)]
+        data.append(newInputs)
+        labels.append([sum(newInputs)])
+    return (data, labels)
 
 # INIT AND TRAIN NETWORK
-n = Network([11, 10])
+n = Network([10, 1])
 n.initWeights(mode="zeros")
-n.train(newSet(data, 200), epochs = 40001, learn_rate = .1,
-        debug = False, debug_interval = 10000)
+n.train(newSet(300, 10), epochs = 20000, learn_rate = .0001,
+        debug = False, debug_interval = 1000)
 
-# QUICK QHECK
-p = newSet(data, 1)
+# QUICK CHECK
+p = newSet(1, 10)
 a = n.feed(p[0]).eval(session = n._session)
-print ""
-print p[0]
-print [float(i) for i in p[1][0]]
-print [round(i, 1) for i in a[0]]
+print "\nQUICK CHECK :: {0}\n".format(abs(p[1][0][0] - a[0][0]))
 
+# WIne
+"""
+WINE TEST
 # TEST ALL DATA POINTS
 print "\nTESTING"
 correct = 0
@@ -73,3 +88,7 @@ for i in data[:100]:
 print "\nCORRECT  :: {0}".format(correct)
 print "ERRORS   :: {0}".format(errors)
 print "ACCURACY :: {0}".format(float(correct) / (correct + errors))
+"""
+
+# Input Backprop
+n.ibp([[20]], epochs = 100000, learn_rate = .0001)

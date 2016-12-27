@@ -109,6 +109,9 @@ class Network (object):
             else:
                 raise TypeError  # TODO Error to replace
 
+        # Finally, clean returned input
+        return input_vector
+
     def feed(self, input_vector, autocorrect = True):
         """
         Feed-forward input_vector through network
@@ -130,9 +133,9 @@ class Network (object):
 
         # Begin and return recursively calculated output
         # TODO same shaping function for feed and train
-        return tf.nn.softmax(calc(input_vector))
+        return calc(input_vector)
 
-    def train(self, data, epochs, learn_rate, miniBatches = 0, loss = "mean_squared",
+    def train(self, data, epochs, learn_rate, loss = "mean_squared",
               optimizer = "proximal_gradient", debug = False, debug_interval = 2000):
         # TODO Finish basic train function
         # TODO Break train into smaller functions
@@ -140,7 +143,6 @@ class Network (object):
         # Clean data
         epochs = int(epochs)
         learn_rate = float(learn_rate)
-        miniBatches = int(miniBatches)
         # Parameters
         # Input
         x = tf.placeholder(tf.float32, [None, self.layers[0]], name = "x")
@@ -156,12 +158,12 @@ class Network (object):
                 return tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
             return calc(tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n], n + 1)
         # TODO shaping functions
-        y = tf.nn.softmax(calc(x))
+        y = calc(x)
         # Labels
         y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
-        loss = tf.reduce_mean(tf.reduce_sum(tf.pow(y - y_, 2), 0))
+        loss = tf.reduce_mean(tf.pow(y_ - y, 2))
         # Optimizer TODO Add more optimizers
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
@@ -195,3 +197,44 @@ class Network (object):
             save_b = [i.eval() for i in b]
             self.w = np.array(save_w)
             self.b = np.array(save_b)
+
+    def ibp(self, target, epochs = 1000, learn_rate = .01):
+        """Applies the Input Backprop Algorithm and returns an input with
+        a target output
+
+        TODO:
+            Add more options
+        """
+        # Clean taget
+        target = self.clean(target)
+        # Define paramaters
+        # Input
+        optimal = tf.Variable(tf.zeros([1, self.layers[0]]))
+        # Input Weights
+        w = [tf.constant(i) for i in self.w]
+        # Input Biases
+        b = [tf.constant(i) for i in self.b]
+        # Output
+        def calc(inp, n=0):
+            """Recursive function for feeding through layers"""
+            if n == len(self.layers) - 2:
+                return tf.matmul(inp, self.w[n]) + self.b[n]
+            return calc(tf.matmul(inp, self.w[n]) + self.b[n], n + 1)
+        out = calc(optimal)
+        # Label
+        lbl = tf.constant(target)
+
+        # Training with quadratic cost and gradient descent with learning rate .01
+        loss = tf.reduce_sum(tf.abs(lbl - out))
+        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
+
+        # Initialize
+        self._session.run(tf.initialize_all_variables())
+        # Train to find three inputs
+        for i in range(epochs):
+            self._session.run(train_step)
+
+        print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
+        print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
+        print("TARGET OUT          :: {0}".format(target))
+        print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
