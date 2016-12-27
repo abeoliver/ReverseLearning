@@ -41,11 +41,13 @@ def newSet(data, size):
         ys.append(f)
     return (xs, ys)
 
+# INIT AND TRAIN NETWORK
 n = Network([11, 10])
 n.initWeights(mode="zeros")
-n.train(newSet(data, 200), epochs = 40001, learn_rate = 1,
+n.train(newSet(data, 200), epochs = 40001, learn_rate = .1,
         debug = False, debug_interval = 10000)
 
+# QUICK QHECK
 p = newSet(data, 1)
 a = n.feed(p[0]).eval(session = n._session)
 print ""
@@ -53,7 +55,7 @@ print p[0]
 print [float(i) for i in p[1][0]]
 print [round(i, 1) for i in a[0]]
 
-# Test all data
+# TEST ALL DATA POINTS
 print "\nTESTING"
 correct = 0
 errors = 0
@@ -68,7 +70,6 @@ for i in data[:100]:
         correct += 1
     else:
         errors += 1
-
 print "\nCORRECT  :: {0}".format(correct)
 print "ERRORS   :: {0}".format(errors)
 print "ACCURACY :: {0}".format(float(correct) / (correct + errors))

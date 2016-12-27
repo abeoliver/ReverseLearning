@@ -169,6 +169,7 @@ class Network (object):
         # Initialize variables
         self._session.run(tf.initialize_all_variables())
         print "TRAINING",
+        STATUS_INTERVAL = epochs / 10
         with self._session .as_default():
             for i in range(epochs):
                 # Get data
@@ -185,7 +186,9 @@ class Network (object):
                     #print("OUT :: {0}".format(y.eval(feed_dict = {x: batch_inps, y_:batch_outs})))
                     print("\n\n")
                 self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
-
+                # Print status bar
+                if i % STATUS_INTERVAL == 0 and not debug: print" * ",
+            print("\nTRAINING COMPLETE")
             # Save weights and biases
             # Turn variables into ndarrays
             save_w = [i.eval() for i in w]
