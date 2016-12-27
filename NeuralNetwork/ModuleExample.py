@@ -12,6 +12,10 @@ f = open('../DataSets/WineQuality/winequality-red.json')
 data = json.load(f)
 f.close()
 
+columns = ["fixed acidity", "volatile acidity", "citric acid", "residual sugar",
+               "chlorides", "free sulfur dioxide", "total sulfur dioxide", "density",
+               "pH", "sulphates", "alcohol"]
+
 def newSet(data, size):
     xs = []     # Data
     ys = []     # Labels
@@ -19,6 +23,7 @@ def newSet(data, size):
     columns = ["fixed acidity", "volatile acidity", "citric acid", "residual sugar",
                "chlorides", "free sulfur dioxide", "total sulfur dioxide", "density",
                "pH", "sulphates", "alcohol"]
+
     for i in range(size):
         index = randint(0, 1598)
         d = data[index]     # Data point being extracted
@@ -36,15 +41,34 @@ def newSet(data, size):
         ys.append(f)
     return (xs, ys)
 
-n = Network([11, 10, 10])
+n = Network([11, 10])
 n.initWeights(mode="zeros")
-n.train(newSet(data, 100), epochs = 20001, learn_rate = .01,
-        debug = True, debug_interval = 10000)
+n.train(newSet(data, 200), epochs = 40001, learn_rate = 1,
+        debug = False, debug_interval = 10000)
 
 p = newSet(data, 1)
 a = n.feed(p[0]).eval(session = n._session)
+print ""
 print p[0]
 print [float(i) for i in p[1][0]]
 print [round(i, 1) for i in a[0]]
 
-# Test
+# Test all data
+print "\nTESTING"
+correct = 0
+errors = 0
+for i in data[:100]:
+    x = [[i[key] for key in columns]]
+    # Create one-hot for label
+    id = int(i["quality"])
+    y_ = [0 for i in range(10)]  # One-hot from zero to 10
+    y_[id] = 1
+    y = n.feed(x).eval(session = n._session)
+    if tf.argmax(y_, 0).eval(session = n._session) == tf.argmax(y[0], 0).eval(session = n._session):
+        correct += 1
+    else:
+        errors += 1
+
+print "\nCORRECT  :: {0}".format(correct)
+print "ERRORS   :: {0}".format(errors)
+print "ACCURACY :: {0}".format(float(correct) / (correct + errors))
