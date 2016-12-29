@@ -58,13 +58,15 @@ def newSet(size, ins = 2):
 
 # INIT AND TRAIN NETWORK
 n = Network([10, 1])
-n.initWeights(mode="ones")
-n.train(newSet(300, 10), epochs = 20000, learn_rate = .0001,
-        debug = True, debug_interval = 5000)
+n.initWeights("zeros")
+n.train(newSet(300, 10), epochs = 10001, learn_rate = .0001,
+        batch_size = 0, debug = True, debug_interval = 5000)
 
 # QUICK CHECK
 p = newSet(1, 10)
-a = n.feed(p[0]).eval(session = n._session)
+a = n.eval(n.feed(p[0]))
+print p[1]
+print a
 print "\nQUICK CHECK :: {0}\n".format(abs(p[1][0][0] - a[0][0]))
 
 # WIne
