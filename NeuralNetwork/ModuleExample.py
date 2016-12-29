@@ -58,9 +58,9 @@ def newSet(size, ins = 2):
 
 # INIT AND TRAIN NETWORK
 n = Network([10, 1])
-n.initWeights(mode="zeros")
+n.initWeights(mode="ones")
 n.train(newSet(300, 10), epochs = 20000, learn_rate = .0001,
-        debug = False, debug_interval = 1000)
+        debug = True, debug_interval = 5000)
 
 # QUICK CHECK
 p = newSet(1, 10)
@@ -91,4 +91,4 @@ print "ACCURACY :: {0}".format(float(correct) / (correct + errors))
 """
 
 # Input Backprop
-n.ibp([[20]], epochs = 100000, learn_rate = .0001)
+# n.ibp([[20]], epochs = 100000, learn_rate = .0001)

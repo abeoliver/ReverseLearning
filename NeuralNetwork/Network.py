@@ -65,11 +65,12 @@ class Network (object):
             pass
         elif mode == "random":
             # Random
-            self.w = [np.random_normal(mean, stddev, (self.layers[n], self.layers[n + 1]))
+            self.w = [tf.random_normal(mean, stddev, (self.layers[n], self.layers[n + 1]))
                       for n in range(len(self.layers) - 1)]
         elif mode == "ones":
             # All ones
-            pass
+            self.w = [tf.ones((self.layers[n], self.layers[n + 1]))
+                      for n in range(len(self.layers) - 1)]
         else:
             # Zeros
             self.w = [tf.zeros((self.layers[n], self.layers[n + 1]))
@@ -163,7 +164,8 @@ class Network (object):
         y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
-        loss = tf.reduce_mean(tf.pow(y_ - y, 2))
+        # loss = tf.reduce_mean(tf.pow(y_ - y, 2))
+        loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
         # Optimizer TODO Add more optimizers
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
