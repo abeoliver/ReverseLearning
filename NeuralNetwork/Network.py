@@ -2,9 +2,6 @@
 # Abraham Oliver, 2016
 # ReverseLearning
 
-# To Do
-# TODO Design and implement exceptions
-
 # Import dependencies
 import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor as TENSOR
@@ -33,21 +30,36 @@ class Network (object):
     """
     def __init__(self, layers):
         """
-        Initialize the network
+        Initialize the network with default weights and biases, a given design, and a tensorflow session
 
-        Parameters:
+        Arguments:
             - layers (int[]) : a list of the number of neurons in each layer where layers[0] is the number of neurons
                                 and layers[-1] is the number of output neurons
         """
-        # TODO clean __init__ input
+        # Clean input
+        # Must be list or tuple
+        if type(layers) != list or type(layers) != tuple:
+            raise TypeError("Layers must be a tuple or a list but instead is a {0}".format(type(layers)))
+        # Must not be empty
+        if len(layers) == 0: raise ValueError("There must be more than zero layers")
+        # Each layer must be an integer above zero
+        for layerIndex in range(len(layers)):
+            if type(layers[layerIndex]) != int: raise TypeError("Layer {0} must be an integer".format(layerIndex))
+            if layers[layerIndex] <= 0: raise ValueError("Layer {0} must be above zero".format(layerIndex))
+
+        # Initialize network
+        # Create a tensorflow session
         self._session = tf.Session()
+        # Set layers
         self.layers = layers
+        # Placeholders for weights and biases (will be set with initValues)
         self.w = np.array([0.0])
         self.b = np.array([0.0])
+        # Initiate weights and biases with default parameters
         self.initValues()
 
     def initValues(self):
-        """ Initializes network weights and biases """
+        """ Initializes network weights and biases with default parameters """
         self.initWeights()
         self.initBiases()
 
@@ -55,31 +67,54 @@ class Network (object):
         """
         Initializes weights with either zeros, ones, randoms, or a preset set
 
-        Parameters:
+        Arguments:
             - mode (string) : the type of initialization
                             - "zeros" : all zeros (DEFAULT)
                             - "ones" : all ones
                             - "random" : random values with mean and standard deviation  set
                             - "preset" : a predefined set of values, other modes
                                         overridden if present is given
+        Keyword Arguments:
+            - mean      : if using random generation, the mean
+            - stddev    : if using random generation, the standard deviation
+            - preset    : if using present values, the preset values
         """
-        # TODO clean initWeights input
+        # Clean input
+        # Change mode to all lowercase
+        mode = mode.lower()
+
+        # Mean must be a number
+        if type(mean) not in [int, float]: raise TypeError("Mean must be a number")
+        # Cast mean to float
+        mean = float(mean)
+
+        # Sttdev must be a number
+        if type(stddev) not in [int, float]: raise TypeError("Standard deviation must be a number")
+        # Cast stddev to float
+        stddev = float(stddev)
+
         if preset != []:
-            # Check if compatible shape
-            # TODO clean weights preset
+            # Preset must be a list, array, tuple, or tensor
+            # TODO Clean preset input
             self.w = preset
-        elif mode == "random":
-            # Random
+        elif mode in ["preset", "presets", "pre", "p"]:
+            # If Mode is set to preset but no preset is given, raise error
+            # Implied that preset wasn't given because the first if didn't trigger
+            raise ValueError("If preser mode is set, a valid preset argument must be given")
+        elif mode in ["random", "randoms", "rand", "r"]:
+            # Create list of random tensors of correct shape for each layer
             self.w = [tf.random_normal([self.layers[n], self.layers[n + 1]], float(mean), float(stddev))
                       for n in range(len(self.layers) - 1)]
-        elif mode == "ones":
-            # All ones
+        elif mode in ["ones", "one", "o"]:
+            # Create list of one-tensors of correct shape for each layer
             self.w = [tf.ones((self.layers[n], self.layers[n + 1]))
                       for n in range(len(self.layers) - 1)]
-        else:
-            # Zeros
+        elif mode in ["zero", "zeros", "z"]:
+            # Create list of zero-tensors of correct shape for each layer
             self.w = [tf.zeros((self.layers[n], self.layers[n + 1]))
                       for n in range(len(self.layers) - 1)]
+        else:
+            raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
 
     def initBiases(self, mode = "ones", mean = 0.0, stddev = 1.0, preset = []):
         """
@@ -115,8 +150,9 @@ class Network (object):
 
     def clean(self, input_vector):
         """Clean input"""
+        ityp = type(input_vector)
         # All entries must be floats
-        if type(input_vector) == list or type(input_vector) == np.ndarray:
+        if ityp in [list, tuple, np.ndarray]:
             for i in range(len(input_vector)):
                 if type(input_vector[i]) == int:
                     input_vector[i] = float(input_vector[i])
@@ -125,19 +161,18 @@ class Network (object):
                     for j in range(len(input_vector[i])):
                         if type(input_vector[i][j]) == int: input_vector[i][j] = float(input_vector[i][j])
         # Input must be a list, array, or tensor
-        ityp = type(input_vector)
-        if ityp != list and ityp != np.ndarray and ityp != tf.Variable and ityp != tf.constant:
-            if (ityp == int or ityp == float) and autocorrect:
+        if ityp not in [list, tuple, np.ndarray, tf.Variable, tf.constant]:
+            if (ityp == int or ityp == float):
                 input_vector = [[float(input_vector)]]
             else:
-                raise TypeError  # TODO Error to replace
-        # Input must be a list, array, or tensor of lists, arrays, or tensors TODO Error to replace
+                raise TypeError("Input must be a list, array, or tensor of ints, floats, lists, arrays, or tensors")
+        # Input must be a list, array, or tensor of lists, arrays, or tensors
         ityp2 = type(input_vector[0])
-        if ityp2 != list and ityp2 != np.ndarray and ityp2 != tf.Variable and ityp2 != tf.constant:
+        if ityp2 not in [list, tuple, np.ndarray, tf.Variable, tf.constant]:
             if ityp2 == int or ityp2 == float:
                 input_vector = [input_vector]
             else:
-                raise TypeError  # TODO Error to replace
+                raise TypeError("Input must be a list, array, or tensor of ints, floats, lists, arrays, or tensors")
 
         # Finally, clean returned input
         return input_vector
@@ -159,7 +194,7 @@ class Network (object):
             return calc(tf.matmul(inp, self.w[n]) + self.b[n], n + 1)
 
         # Clean input_vector
-        self.clean(input_vector)
+        input_vector = self.clean(input_vector)
 
         # Begin and return recursively calculated output
         # TODO same shaping function for feed and train
