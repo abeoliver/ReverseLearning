@@ -8,6 +8,8 @@ from tensorflow.python.framework.ops import Tensor as TENSOR
 import numpy as np
 from random import randint
 
+# TODO Add support for custom activation, shaping, and loss functions
+
 class Network (object):
     """
     A neural network using tensorflow for training with InputBackprop methods
@@ -21,6 +23,7 @@ class Network (object):
         - train         : train the network with given data
         - ibp           : perform the Input Backpropagation algorithm
         - eval          : evaluate a tensor with network session
+        - storeParams   : store weights and biases as ndarrays instead of tensors
 
     ATTRIBUTES:
         - w             : the weights
@@ -116,6 +119,9 @@ class Network (object):
         else:
             raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
 
+        # Save as ndarray
+        self.storeParams(storeBiases = False)
+
     def initBiases(self, mode = "ones", mean = 0.0, stddev = 1.0, preset = []):
         """
         Initializes biases with either zeros, ones, randoms, or a preset set
@@ -168,6 +174,9 @@ class Network (object):
                       for n in range(len(self.layers) - 1)]
         else:
             raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
+
+        # Save as ndarray
+        self.storeParams(storeWeights = False)
 
     def clean(self, input_vector):
         """Clean input for network functions"""
@@ -270,6 +279,7 @@ class Network (object):
             """Recursive function for feeding through layers"""
             # End recursion
             if n == len(self.layers) - 2:
+                # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
                 calculated = tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
                 # Apply activation if set
                 if activation == "sigmoid":
@@ -348,11 +358,7 @@ class Network (object):
             print("\nTRAINING COMPLETE")
 
             # Save weights and biases
-            # Turn variables into ndarrays
-            save_w = [i.eval() for i in w]
-            save_b = [i.eval() for i in b]
-            self.w = np.array(save_w)
-            self.b = np.array(save_b)
+            self.storeParams()
 
     def ibp(self, target, epochs = 1000, learn_rate = .01):
         """Applies the Input Backprop Algorithm and returns an input with
@@ -417,3 +423,12 @@ class Network (object):
             return tensor.eval(session = self._session, feed_dict = feed_dict)
         else:
             raise TypeError
+
+    def storeParams(self, storeWeights = True, storeBiases = True):
+        """Save the weights and biases as ndarrays"""
+        if storeWeights:
+            save_w = [self.eval(i) for i in self.w]
+            self.w = np.array(save_w)
+        if storeBiases:
+            save_b = [self.eval(i) for i in self.b]
+            self.b = np.array(save_b)
