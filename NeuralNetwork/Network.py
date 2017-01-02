@@ -208,6 +208,9 @@ class Network (object):
         NOTE:
             Does not yet support shaping functions
         """
+        # Clean input
+        self.clean(input_vector)
+
         # Recursive calculation function
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
@@ -223,7 +226,8 @@ class Network (object):
         return calc(input_vector)
 
     def train(self, data, learn_rate, epochs = 1, batch_size = 0,
-              loss="mean_squared", debug = False, debug_interval = 2000):
+              loss_function = "mean_squared", shaping = "none", activation = "none",
+              debug = False, debug_interval = 2000):
         """
         Train the network using given data
 
@@ -232,7 +236,14 @@ class Network (object):
             epochs      : number of epochs to run
             batch_size  : size of each minibatch (leave 0 for full dataset)
             loss        : loss function to use
-                            - "mean_squared"    : average of the squares of the errors
+                            - "mean_squared"    : average of the squares of the errors (DEFAULT)
+                            - "cross_entropy"   : cross entropy function
+            shaping     : shaping function to use
+                            - "none"            : no shaping function (DEFAULT)
+                            - "softmax"         : the tensorflow softmax function
+            activation  : activation function to use
+                            - "none"            : no activiation function
+                            - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
             debug_interval : number of epochs between debugs
 
@@ -257,17 +268,36 @@ class Network (object):
         # Predicted output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
+            # End recursion
             if n == len(self.layers) - 2:
-                return tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
-            return calc(tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n], n + 1)
-        # TODO shaping functions
-        y = calc(x)
+                calculated = tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
+                # Apply activation if set
+                if activation == "sigmoid":
+                    return tf.sigmoid(calculated)
+                else:
+                    return calculated
+            # Continue recursion
+            calculated = tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
+            # Apply activation if set
+            if activation == "sigmoid":
+                return calc(tf.sigmoid(calculated), n + 1)
+            else:
+                return calc(calculated, n + 1)
+
+        # Shape output
+        if shaping == "softmax":
+            y = tf.nn.softmax(calc(x))
+        else:
+            y = calc(x)
         
         # Labels
         y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
-        loss = tf.reduce_mean(tf.pow(y_ - y, 2))
+        if loss_function == "cross_entropy":
+            loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+        else:
+            loss = tf.reduce_mean(tf.pow(y_ - y, 2))
         
         # Optimizer
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)

@@ -22,6 +22,7 @@ def newSet(size, ins = 2):
 n = Network([3, 1])
 n.initWeights("zeros")
 n.train(newSet(300, 3), epochs = 10001, learn_rate = .0001,
+        activation = "none", shaping = "none ",
         batch_size = 0, debug = False, debug_interval = 5000)
 
 # QUICK CHECK
