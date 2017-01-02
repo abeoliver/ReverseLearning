@@ -100,9 +100,9 @@ class Network (object):
         elif mode in ["preset", "presets", "pre", "p"]:
             # If Mode is set to preset but no preset is given, raise error
             # Implied that preset wasn't given because the first if didn't trigger
-            raise ValueError("If preser mode is set, a valid preset argument must be given")
+            raise ValueError("If preset mode is set, a valid preset argument must be given")
         elif mode in ["random", "randoms", "rand", "r"]:
-            # Create list of random tensors of correct shape for each layer
+            # Create list of random weights tensors of correct shape for each layer
             self.w = [tf.random_normal([self.layers[n], self.layers[n + 1]], float(mean), float(stddev))
                       for n in range(len(self.layers) - 1)]
         elif mode in ["ones", "one", "o"]:
@@ -120,36 +120,57 @@ class Network (object):
         """
         Initializes biases with either zeros, ones, randoms, or a preset set
 
-        Parameters:
+        Arguments:
             - mode (string) : the type of initialization
-                            - "zeros" : all zeros
-                            - "ones" : all ones (DEFAULT)
+                            - "zeros" : all zeros (DEFAULT)
+                            - "ones" : all ones
                             - "random" : random values with mean and standard deviation  set
                             - "preset" : a predefined set of values, other modes
                                         overridden if present is given
+        Keyword Arguments:
+            - mean      : if using random generation, the mean
+            - stddev    : if using random generation, the standard deviation
+            - preset    : if using present values, the preset values
         """
-        # TODO write initBiases docstring
-        # TODO add initBiases options
-        # TODO clean initWeights input
+        # Clean input
+        # Change mode to all lowercase
+        mode = mode.lower()
+
+        # Mean must be a number
+        if type(mean) not in [int, float]: raise TypeError("Mean must be a number")
+        # Cast mean to float
+        mean = float(mean)
+
+        # Sttdev must be a number
+        if type(stddev) not in [int, float]: raise TypeError("Standard deviation must be a number")
+        # Cast stddev to float
+        stddev = float(stddev)
+
         if preset != []:
-            # Check if compatible shape
-            # TODO clean bias preset
+            # Preset must be a list, array, tuple, or tensor
+            # TODO Clean preset input
             self.b = preset
-        elif mode == "random":
-            # Random
+        elif mode in ["preset", "presets", "pre", "p"]:
+            # If Mode is set to preset but no preset is given, raise error
+            # Implied that preset wasn't given because the first if didn't trigger
+            raise ValueError("If preset mode is set, a valid preset argument must be given")
+        elif mode in ["random", "randoms", "rand", "r"]:
+            # Create list of random tensors of correct shape for each layer
             self.b = [tf.random_normal([1, self.layers[n + 1]], float(mean), float(stddev))
                       for n in range(len(self.layers) - 1)]
-        elif mode == "zeros":
-            # Zeros
+        elif mode in ["ones", "one", "o"]:
+            # Create list of one-tensors of correct shape for each layer
+            self.b = [tf.ones((1, self.layers[n + 1]))
+                      for n in range(len(self.layers) - 1)]
+        elif mode in ["zero", "zeros", "z"]:
+            # Create list of zero-tensors of correct shape for each layer
             self.b = [tf.zeros((1, self.layers[n + 1]))
                       for n in range(len(self.layers) - 1)]
         else:
-            # All ones
-            self.b = [tf.ones([1, self.layers[n + 1]])
-                      for n in range(len(self.layers) - 1)]
+            raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
 
     def clean(self, input_vector):
-        """Clean input"""
+        """Clean input for network functions"""
         ityp = type(input_vector)
         # All entries must be floats
         if ityp in [list, tuple, np.ndarray]:
@@ -177,14 +198,15 @@ class Network (object):
         # Finally, clean returned input
         return input_vector
 
-    def feed(self, input_vector, autocorrect = True):
+    def feed(self, input_vector):
         """
         Feed-forward input_vector through network
 
         Parameters:
             - input_vector (Tensor, Nd-array,  list) : input_vector to feed through
-            - autocorrect (bool) : if true, function attempts to fix errors and run (if it can't fix, error),
-                                    if false, function throws exception
+            
+        NOTE:
+            Does not yet support shaping functions
         """
         # Recursive calculation function
         def calc(inp, n=0):
@@ -211,23 +233,27 @@ class Network (object):
             batch_size  : size of each minibatch (leave 0 for full dataset)
             loss        : loss function to use
                             - "mean_squared"    : average of the squares of the errors
-                            - "cross_entropy"   : cross entropy
             debug       : on / off debug mode
             debug_interval : number of epochs between debugs
 
         """
-        # TODO Clean data function
+        # TODO Clean data for training
+        # TODO Clean training parameters
         # Clean data
         epochs = int(epochs)
         learn_rate = float(learn_rate)
+        
         # Parameters
         # Input
         x = tf.placeholder(tf.float32, [None, self.layers[0]], name = "x")
+        
         # Weights
         w = [tf.Variable(self.w[i], name = "w") for i in range(len(self.w))]
+        
         # Biases
         b = [tf.Variable(self.b[i], name = "b") for i in range(len(self.b))]
         self._session.run(tf.initialize_all_variables())
+        
         # Predicted output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
@@ -236,20 +262,23 @@ class Network (object):
             return calc(tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n], n + 1)
         # TODO shaping functions
         y = calc(x)
+        
         # Labels
         y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
         loss = tf.reduce_mean(tf.pow(y_ - y, 2))
-        #loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+        
         # Optimizer
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
         # Minibatch creation
         def newBatch():
+            # If batch size is zero, use full dataset
             if batch_size == 0:
                 return data
             else:
+                # Randomly choose inputs and corresponding labels for batches
                 ins = []
                 lbls = []
                 for i in range(batch_size):
@@ -274,14 +303,14 @@ class Network (object):
                 # Debug printing
                 if i % debug_interval == 0 and debug:
                     print("Weights ::")
-                    for i in w:
-                        print(i.eval())
+                    for j in w:
+                        print(j.eval())
                     print("Biases ::")
-                    for i in b:
-                        print(i.eval())
+                    for j in b:
+                        print(j.eval())
                     print("Loss :: {0}".format(loss.eval(feed_dict={x: batch_inps, y_: batch_outs})))
-                    #print("OUT :: {0}".format(y.eval(feed_dict = {x: batch_inps, y_:batch_outs})))
                     print("\n\n")
+                # Train
                 self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
                 # Print status bar (debug)
                 if i % STATUS_INTERVAL == 0 and not debug: print" * ",
