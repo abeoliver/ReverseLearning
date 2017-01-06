@@ -26,11 +26,11 @@ Are you interested in reverse networks?
 Do you have any other questions?  
 
 ###### Abe Oliver
-Github : github.com/abeoliver
+Github : [github.com/abeoliver](github.com/abeoliver)...
 Email : _abeoliver.116@gmail.com_  
 
 ###### Jadan Ercoli  
-Github : github.com/jadanercoli
+Github : [github.com/jadanercoli](github.com/jadanercoli)...
 Email : _docjadan@yahoo.com_
 
 
