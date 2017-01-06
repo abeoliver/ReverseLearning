@@ -120,7 +120,7 @@ class Network (object):
             raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
 
         # Save weights
-        self.b = [i.eval(session=self._session) for i in self.w]
+        self.w = [i.eval(session=self._session) for i in self.w]
 
     def initBiases(self, mode = "ones", mean = 0.0, stddev = 1.0, preset = []):
         """
