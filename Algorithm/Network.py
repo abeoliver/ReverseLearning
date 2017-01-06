@@ -31,13 +31,19 @@ class Network (object):
         - layers        : number of neurons in each layer
         - _session      : tensorflow session for network graph
     """
-    def __init__(self, layers):
+    def __init__(self, layers, activation = "none", shaping = "none"):
         """
         Initialize the network with default weights and biases, a given design, and a tensorflow session
 
-        Arguments:
-            - layers (int[]) : a list of the number of neurons in each layer where layers[0] is the number of neurons
+        Parameters:
+            layers (int[])  : a list of the number of neurons in each layer where layers[0] is the number of neurons
                                 and layers[-1] is the number of output neurons
+            activation  : activation function to use
+                            - "none"            : no activiation function
+                            - "sigmoid"         : sigmoid function
+            shaping         : shaping function to use
+                            - "none"            : no shaping function (DEFAULT)
+                            - "softmax"         : the tensorflow softmax function
         """
         # Clean input
         # Must be list or tuple
@@ -49,6 +55,18 @@ class Network (object):
         for layerIndex in range(len(layers)):
             if type(layers[layerIndex]) != int: raise TypeError("Layer {0} must be an integer".format(layerIndex))
             if layers[layerIndex] <= 0: raise ValueError("Layer {0} must be above zero".format(layerIndex))
+
+        # Clean shaping input
+        if shaping in ["none", "softmax"]:
+            self.shaping = shaping
+        else:
+            raise TypeError("'{0}' is not a valid shaping function".format(shaping))
+
+        # Clean activation input
+        if activation in ["none", "sigmoid"]:
+            self.activation = activation
+        else:
+            raise TypeError("'{0}' is not a valid activation function".format(activation))
 
         # Initialize network
         # Create a tensorflow session
@@ -238,25 +256,18 @@ class Network (object):
         else:
             return calc(input_vector)
 
-    def train(self, data, learn_rate, epochs = 1, batch_size = 0,
-              loss_function = "mean_squared", shaping = "none", activation = "none",
+    def train(self, data, learn_rate, epochs = 1000, batch_size = 0, loss_function = "mean_squared",
               debug = False, debug_interval = 2000):
         """
         Train the network using given data
 
         Parameters:
             data        : inputs and labels in format [inputs, labels]
-            epochs      : number of epochs to run
+            epochs      : number of epochs to run (DEFAULT 1000)
             batch_size  : size of each minibatch (leave 0 for full dataset)
-            loss        : loss function to use
+            loss_function : loss function to use
                             - "mean_squared"    : average of the squares of the errors (DEFAULT)
                             - "cross_entropy"   : cross entropy function
-            shaping     : shaping function to use
-                            - "none"            : no shaping function (DEFAULT)
-                            - "softmax"         : the tensorflow softmax function
-            activation  : activation function to use
-                            - "none"            : no activiation function
-                            - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
             debug_interval : number of epochs between debugs
 
@@ -286,20 +297,20 @@ class Network (object):
                 # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
                 calculated = tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
                 # Apply activation if set
-                if activation == "sigmoid":
+                if self.activation == "sigmoid":
                     return tf.sigmoid(calculated)
                 else:
                     return calculated
             # Continue recursion
             calculated = tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
             # Apply activation if set
-            if activation == "sigmoid":
+            if self.activation == "sigmoid":
                 return calc(tf.sigmoid(calculated), n + 1)
             else:
                 return calc(calculated, n + 1)
 
         # Shape output
-        if shaping == "softmax":
+        if self.shaping == "softmax":
             y = tf.nn.softmax(calc(x))
         else:
             y = calc(x)
@@ -365,50 +376,6 @@ class Network (object):
             self.w = [i.eval() for i in w]
             self.b = [i.eval() for i in b]
 
-    def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False):
-        """Applies the Input Backprop Algorithm and returns an input with
-        a target output
-
-        TODO:
-            Add more options
-        """
-        # Clean taget
-        target = self.clean(target)
-        # Define paramaters
-        # Input
-        optimal = tf.Variable(tf.zeros([1, self.layers[0]]))
-        # Input Weights
-        w = [tf.constant(i) for i in self.w]
-        # Input Biases
-        b = [tf.constant(i) for i in self.b]
-        # Output
-        def calc(inp, n=0):
-            """Recursive function for feeding through layers"""
-            if n == len(self.layers) - 2:
-                return tf.matmul(inp, self.w[n]) + self.b[n]
-            return calc(tf.matmul(inp, self.w[n]) + self.b[n], n + 1)
-        out = calc(optimal)
-        # Label
-        lbl = tf.constant(target)
-
-        # Training with quadratic cost and gradient descent with learning rate .01
-        loss = tf.reduce_sum(tf.abs(lbl - out))
-        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
-
-        # Initialize
-        self._session.run(tf.initialize_all_variables())
-        # Train to find three inputs
-        for i in range(epochs):
-            self._session.run(train_step)
-
-        if debug:
-            print("\nOPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
-            print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
-            print("TARGET OUT          :: {0}".format(target))
-            print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
-
-        return optimal.eval(session = self._session)
-
     def eval(self, tensor, feed_dict= {}):
         """
         Evaluate a tensor using network tensorflow session
@@ -431,3 +398,94 @@ class Network (object):
             return tensor.eval(session = self._session, feed_dict = feed_dict)
         else:
             raise TypeError
+
+    def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False,
+            loss_function="absolute_distance", shaping="none", activation="none"):
+        """
+        Applies the Input Backprop Algorithm and returns an input with
+        a target output
+
+        Parameters:
+            target          : target value
+            epochs          : number of epochs to run (DEFAULT 1000)
+            loss_function   : loss function to use (DEFAULT absolute distance)
+                            - "absolute_distance" : absolute difference between label and output
+                            - "cross_entropy"   : cross entropy function
+                            - "quadratic_distance" : absolute distance squared
+            activation  : activation function to use
+                            - "none"            : no activiation function
+                            - "sigmoid"         : sigmoid function
+            debug       : on / off debug mode
+        """
+        # Clean inputs
+        # TODO Clean data for training IBP
+        # TODO Clean training parameters IBP
+        epochs = int(epochs)
+        learn_rate = float(learn_rate)
+        target = self.clean(target)
+
+        # Define paramaters
+        # Input
+        optimal = tf.Variable(tf.zeros([1, self.layers[0]]))
+
+        # Input Weights
+        w = [tf.constant(i) for i in self.w]
+
+        # Input Biases
+        b = [tf.constant(i) for i in self.b]
+
+        # Output
+        def calc(inp, n=0):
+            """Recursive function for feeding through layers"""
+            # End recursion
+            if n == len(self.layers) - 2:
+                # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
+                calculated = tf.matmul(inp, w[n], name="mul{0}".format(n)) + b[n]
+                # Apply activation if set
+                if self.activation == "sigmoid":
+                    return tf.sigmoid(calculated)
+                else:
+                    return calculated
+            # Continue recursion
+            calculated = tf.matmul(inp, w[n], name="mul{0}".format(n)) + b[n]
+            # Apply activation if set
+            if self.activation == "sigmoid":
+                return calc(tf.sigmoid(calculated), n + 1)
+            else:
+                return calc(calculated, n + 1)
+
+        # Shape output
+        if self.shaping == "softmax":
+            out = tf.nn.softmax(calc(optimal))
+        else:
+            out = calc(optimal)
+
+        # Label
+        lbl = tf.constant(target)
+
+        # Training with quadratic cost and gradient descent with learning rate .01
+        # Loss function TODO Add more loss functions IBP
+        if loss_function == "cross_entropy":
+            loss = -lbl * tf.log(out)
+        elif loss_function == "absolute_distance":
+            loss = tf.abs(lbl - out)
+        else:
+            loss = tf.pow(lbl - out, 2)
+
+        # Optimizer
+        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
+
+        # Initialize
+        self._session.run(tf.initialize_all_variables())
+
+        # Train to find three inputs
+        for i in range(epochs):
+            self._session.run(train_step)
+
+        if debug:
+            print("\nOPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
+            print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
+            print("TARGET OUT          :: {0}".format(target))
+            print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
+
+        return optimal.eval(session = self._session)
