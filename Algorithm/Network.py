@@ -17,8 +17,6 @@ class Network (object):
     METHODS:
         - initValues    : initiate default weights and biases
         - intiWeights   : initiate weights with given paramaters
-        - printWeights  : print evaluated weight array
-        - printBiases   : print evaluated bias array
         - initBiases    : initiate biases with given paramaters
         - clean         : clean an input and fix it if wrong format
         - feed          : feed an input into the network
