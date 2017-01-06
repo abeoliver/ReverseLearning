@@ -119,6 +119,9 @@ class Network (object):
         else:
             raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
 
+        # Save weights
+        self.b = [i.eval(session=self._session) for i in self.w]
+
     def initBiases(self, mode = "ones", mean = 0.0, stddev = 1.0, preset = []):
         """
         Initializes biases with either zeros, ones, randoms, or a preset set
@@ -171,6 +174,9 @@ class Network (object):
                       for n in range(len(self.layers) - 1)]
         else:
             raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
+
+        # Save biases
+        self.b = [i.eval(session = self._session) for i in self.b]
 
     def clean(self, input_vector):
         """Clean input for network functions"""
