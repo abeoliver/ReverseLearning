@@ -17,8 +17,6 @@ class Network (object):
     METHODS:
         - initValues    : initiate default weights and biases
         - intiWeights   : initiate weights with given paramaters
-        - printWeights  : print evaluated weight array
-        - printBiases   : print evaluated bias array
         - initBiases    : initiate biases with given paramaters
         - clean         : clean an input and fix it if wrong format
         - feed          : feed an input into the network
@@ -121,6 +119,9 @@ class Network (object):
         else:
             raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
 
+        # Save weights
+        self.b = [i.eval(session=self._session) for i in self.w]
+
     def initBiases(self, mode = "ones", mean = 0.0, stddev = 1.0, preset = []):
         """
         Initializes biases with either zeros, ones, randoms, or a preset set
@@ -173,6 +174,9 @@ class Network (object):
                       for n in range(len(self.layers) - 1)]
         else:
             raise ValueError("A valid mode must be given from random, ones, zeros, or preset")
+
+        # Save biases
+        self.b = [i.eval(session = self._session) for i in self.b]
 
     def clean(self, input_vector):
         """Clean input for network functions"""
