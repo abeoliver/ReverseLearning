@@ -11,7 +11,8 @@ AdditionNetwork Dataset. All weights are 1's and the biases are 0's (because all
 the inputs multiplied by one, added to zero, and then summed together is the same
 as summing all the inputs in the first place)
 
-All configurations have 1 output, 100000 epochs, .001 learning rate, and a 4.0 target
+All configurations have 1 output, 100000 epochs, .001 learning rate,
+no hidden neurons, and a 4.0 target
 Configurations vary in number of inputs
 """
 
