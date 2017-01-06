@@ -36,5 +36,5 @@ def AdditionDataSet(size):
 n = Network([2, 1])
 n.initWeights(mode = "ones")
 n.initBiases(mode = "zeros")
-print n.eval(n.w)
-print n.eval(n.b)
+print n.w
+print n.b
