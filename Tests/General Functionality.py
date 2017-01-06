@@ -4,7 +4,7 @@
 from Algorithm.Network import Network
 
 """
-Test IBP Algorithm on multiple network configurations
+Test IBP Algorithm with multiple configurations
 
 The feed-forward networks are 100% accurate because there is a solution for the
 AdditionNetwork Dataset. All weights are 1's and the biases are 0's (because all
