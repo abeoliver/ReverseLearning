@@ -256,8 +256,9 @@ class Network (object):
         else:
             return calc(input_vector)
 
-    def train(self, data, learn_rate, epochs = 1000, batch_size = 0, loss_function = "mean_squared",
-              debug = False, debug_interval = 2000):
+    def train(self, data, learn_rate = .001, epochs = 1000, batch_size = 0,
+              loss_function = "mean_squared", debug = False, debug_interval = 2000,
+              debug_final_loss = False, silence = False):
         """
         Train the network using given data
 
@@ -270,13 +271,20 @@ class Network (object):
                             - "cross_entropy"   : cross entropy function
             debug       : on / off debug mode
             debug_interval : number of epochs between debugs
-
+            debug_final_loss : print the final accuracy of the network (debug does not
+                                        have to be enabled)
+            silence     : print NOTHING
         """
         # TODO Clean data for training
         # TODO Clean training parameters
         # Clean data
         epochs = int(epochs)
         learn_rate = float(learn_rate)
+
+        # Turn of all printing if silence is on
+        if silence:
+            debug = False
+            debug_final_loss = False
         
         # Parameters
         # Input
@@ -346,7 +354,8 @@ class Network (object):
         self._session.run(tf.initialize_all_variables())
 
         # Debug
-        print "TRAINING",
+        if not silence and not debug:
+            print "TRAINING",
         STATUS_INTERVAL = epochs / 10
 
         # Train network
@@ -370,7 +379,12 @@ class Network (object):
                 # Print status bar (debug)
                 if i % STATUS_INTERVAL == 0 and not debug: print" * ",
             # Debug
-            print("\nTRAINING COMPLETE")
+            if not silence and not debug:
+                print("\nTRAINING COMPLETE")
+
+            if debug_final_loss:
+                fLoss = loss.eval(feed_dict = {x: batch_inps, y_: batch_outs})
+                print "FINAL LOSS :: {0}".format(fLoss)
 
             # Save weights and biases
             self.w = [i.eval() for i in w]
@@ -483,7 +497,7 @@ class Network (object):
             self._session.run(train_step)
 
         if debug:
-            print("\nOPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
+            print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
             print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
             print("TARGET OUT          :: {0}".format(target))
             print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
