@@ -25,10 +25,12 @@ Are you interested in giving advice to aspiring, young coders?
 Are you interested in reverse networks?  
 Do you have any other questions?  
 
-###### Abe Oliver  
+###### Abe Oliver
+Github : github.com/abeoliver
 Email : _abeoliver.116@gmail.com_  
 
 ###### Jadan Ercoli  
+Github : github.com/jadanercoli
 Email : _docjadan@yahoo.com_
 
 
