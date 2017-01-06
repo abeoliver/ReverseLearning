@@ -26,7 +26,7 @@ n.train(newSet(300, 4), epochs = 10001, learn_rate = .0001,
 
 # QUICK CHECK
 p = newSet(1, 4)
-a = n.eval(n.feed(p[0]))
+a = n.feed(p[0], evaluate = True)
 print p[1]
 print a
 print "\nQUICK CHECK :: {0}\n".format(abs(p[1][0][0] - a[0][0]))
