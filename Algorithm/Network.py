@@ -365,7 +365,7 @@ class Network (object):
             self.w = [i.eval() for i in w]
             self.b = [i.eval() for i in b]
 
-    def ibp(self, target, epochs = 1000, learn_rate = .01):
+    def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False):
         """Applies the Input Backprop Algorithm and returns an input with
         a target output
 
@@ -401,10 +401,13 @@ class Network (object):
         for i in range(epochs):
             self._session.run(train_step)
 
-        print("\nOPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
-        print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
-        print("TARGET OUT          :: {0}".format(target))
-        print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
+        if debug:
+            print("\nOPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
+            print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
+            print("TARGET OUT          :: {0}".format(target))
+            print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
+
+        return optimal.eval(session = self._session)
 
     def eval(self, tensor, feed_dict= {}):
         """

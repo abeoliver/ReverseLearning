@@ -35,4 +35,4 @@ print n.w
 print n.b
 
 # Input Backprop
-n.ibp([[20]], epochs = 100000, learn_rate = .0001)
+print n.ibp([[20]], epochs = 100000, learn_rate = .0001, debug = True)
