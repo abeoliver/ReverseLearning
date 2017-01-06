@@ -17,6 +17,8 @@ class Network (object):
     METHODS:
         - initValues    : initiate default weights and biases
         - intiWeights   : initiate weights with given paramaters
+        - printWeights  : print evaluated weight array
+        - printBiases   : print evaluated bias array
         - initBiases    : initiate biases with given paramaters
         - clean         : clean an input and fix it if wrong format
         - feed          : feed an input into the network
@@ -201,13 +203,14 @@ class Network (object):
         # Finally, clean returned input
         return input_vector
 
-    def feed(self, input_vector):
+    def feed(self, input_vector, evaluate = False):
         """
         Feed-forward input_vector through network
 
         Parameters:
             - input_vector (Tensor, Nd-array,  list) : input_vector to feed through
-            
+            - evaluate (bool): evaluate output tensor. Yes or no?
+
         NOTE:
             Does not yet support shaping functions
         """
@@ -226,7 +229,10 @@ class Network (object):
 
         # Begin and return recursively calculated output
         # TODO same shaping function for feed and train
-        return calc(input_vector)
+        if evaluate:
+            return self.eval(calc(input_vector))
+        else:
+            return calc(input_vector)
 
     def train(self, data, learn_rate, epochs = 1, batch_size = 0,
               loss_function = "mean_squared", shaping = "none", activation = "none",
