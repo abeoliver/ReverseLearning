@@ -1,10 +1,16 @@
 # Algorithm Playground
 # ReverseLearning
 
-from Network import Network
+from Algorithm.Network import Network
 from random import random, randint
 from scipy.special import expit
 import numpy as np
+import tensorflow as tf
+
+def normalize(vector, span=(0,1)):
+    minimum, maximum = (np.min(vector), np.max(vector))
+    scaling = (span[1] - span[0]) / (maximum - minimum)
+    return ((vector - minimum) * scaling) + span[0]
 
 # Import Dataset
 import csv
@@ -29,11 +35,13 @@ def inverseSigmoid(t):
 # Dataset
 dataset = ([], [])
 for i in data:
-    dataset[0].append([expit(float(a) / 1000) for a in i[2:60]])
-    dataset[1].append([expit(int(i[60]))])
+    q = normalize([float(a) for a in i[2:]])
+    dataset[0].append(q[:58])
+    dataset[1].append([q[58]])
 
-n = Network([58, 1], activation = "sigmoid")
+n = Network([58, 10, 1], activation = "sigmoid")
 n.initBiases(mode = "random")
-n.initWeights(mode = "random")
-n.train(dataset, epochs = 40001, learn_rate = .00001, batch_size = 100,
-        debug = False, debug_interval = 100, debug_final_loss = True)
+n.initWeights(mode = "random", mean = 0, stddev = 100)
+n.train(dataset, epochs = 100000, learn_rate = .0001, batch_size = 1000,
+        debug = True, debug_interval = 100, debug_final_loss = True,
+        debug_only_loss = True)
