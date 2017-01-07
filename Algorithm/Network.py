@@ -217,7 +217,7 @@ class Network (object):
         # Input must be a list, array, or tensor of lists, arrays, or tensors
         ityp2 = type(input_vector[0])
         if ityp2 not in [list, tuple, np.ndarray, tf.Variable, tf.constant]:
-            if ityp2 == int or ityp2 == float:
+            if ityp2 in [int, float, np.int32, np.float32, np.int64, np.float64]:
                 input_vector = [input_vector]
             else:
                 raise TypeError("Input must be a list, array, or tensor of ints, floats, lists, arrays, or tensors")
@@ -225,7 +225,7 @@ class Network (object):
         # Finally, clean returned input
         return input_vector
 
-    def feed(self, input_vector, evaluate = False):
+    def feed(self, input_vector, evaluate = True):
         """
         Feed-forward input_vector through network
 
@@ -239,22 +239,40 @@ class Network (object):
         # Clean input
         self.clean(input_vector)
 
-        # Recursive calculation function
+        # Predicted output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
+            # End recursion
             if n == len(self.layers) - 2:
-                return tf.matmul(inp, self.w[n]) + self.b[n]
-            return calc(tf.matmul(inp, self.w[n]) + self.b[n], n + 1)
+                # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
+                calculated = tf.matmul(inp, self.w[n], name="mul{0}".format(n)) + self.b[n]
+                # Apply activation if set
+                if self.activation == "sigmoid":
+                    return tf.sigmoid(calculated)
+                else:
+                    return calculated
+            # Continue recursion
+            calculated = tf.matmul(inp, self.w[n], name="mul{0}".format(n)) + self.b[n]
+            # Apply activation if set
+            if self.activation == "sigmoid":
+                return calc(tf.sigmoid(calculated), n + 1)
+            else:
+                return calc(calculated, n + 1)
 
         # Clean input_vector
         input_vector = self.clean(input_vector)
 
-        # Begin and return recursively calculated output
-        # TODO same shaping function for feed and train
-        if evaluate:
-            return self.eval(calc(input_vector))
+        # Shape output
+        if self.shaping == "softmax":
+            y = tf.nn.softmax(calc(input_vector))
         else:
-            return calc(input_vector)
+            y = calc(input_vector)
+
+        # Begin and return recursively calculated output
+        if evaluate:
+            return self.eval(y)
+        else:
+            return calc(y)
 
     def train(self, data, learn_rate = .001, epochs = 1000, batch_size = 0,
               loss_function = "mean_squared", debug = False, debug_interval = 2000,
@@ -281,10 +299,9 @@ class Network (object):
         epochs = int(epochs)
         learn_rate = float(learn_rate)
 
-        # Turn of all printing if silence is on
+        # Turn of all printing if silence is on (except debug_final_loss)
         if silence:
             debug = False
-            debug_final_loss = False
         
         # Parameters
         # Input
@@ -324,7 +341,10 @@ class Network (object):
             y = calc(x)
         
         # Labels
-        y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
+        if self.activation == "sigmoid":
+            y_ = tf.sigmoid(tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_"))
+        else:
+            y = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
         if loss_function == "cross_entropy":
@@ -345,7 +365,7 @@ class Network (object):
                 ins = []
                 lbls = []
                 for i in range(batch_size):
-                    r = randint(0, len(data) - 1)
+                    r = randint(0, len(data[0]) - 1)
                     ins.append(data[0][r])
                     lbls.append(data[1][r])
                 return [ins, lbls]
@@ -377,7 +397,8 @@ class Network (object):
                 # Train
                 self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
                 # Print status bar (debug)
-                if i % STATUS_INTERVAL == 0 and not debug: print" * ",
+                if not debug and not silence:
+                    if i % STATUS_INTERVAL == 0: print" * ",
             # Debug
             if not silence and not debug:
                 print("\nTRAINING COMPLETE")
@@ -475,7 +496,10 @@ class Network (object):
             out = calc(optimal)
 
         # Label
-        lbl = tf.constant(target)
+        if self.activation == "sigmoid":
+            lbl = tf.sigmoid(tf.constant(target))
+        else:
+            lbl = tf.constant(target)
 
         # Training with quadratic cost and gradient descent with learning rate .01
         # Loss function TODO Add more loss functions IBP
