@@ -276,7 +276,7 @@ class Network (object):
 
     def train(self, data, learn_rate = .001, epochs = 1000, batch_size = 0,
               loss_function = "mean_squared", debug = False, debug_interval = 2000,
-              debug_final_loss = False, silence = False):
+              debug_final_loss = False, silence = False, debug_only_loss = False):
         """
         Train the network using given data
 
@@ -291,7 +291,8 @@ class Network (object):
             debug_interval : number of epochs between debugs
             debug_final_loss : print the final accuracy of the network (debug does not
                                         have to be enabled)
-            silence     : print NOTHING
+            debug_only_loss : don't print weights and biases on debug (debug must be enabled)
+            silence     : print NOTHING (debug_final_loss is exception)
         """
         # TODO Clean data for training
         # TODO Clean training parameters
@@ -300,8 +301,7 @@ class Network (object):
         learn_rate = float(learn_rate)
 
         # Turn of all printing if silence is on (except debug_final_loss)
-        if silence:
-            debug = False
+        if silence: debug = False
         
         # Parameters
         # Input
@@ -344,7 +344,7 @@ class Network (object):
         if self.activation == "sigmoid":
             y_ = tf.sigmoid(tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_"))
         else:
-            y = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
+            y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
         if loss_function == "cross_entropy":
@@ -386,14 +386,16 @@ class Network (object):
                 batch_inps, batch_outs = newBatch()
                 # Debug printing
                 if i % debug_interval == 0 and debug:
-                    print("Weights ::")
-                    for j in w:
-                        print(j.eval())
-                    print("Biases ::")
-                    for j in b:
-                        print(j.eval())
+                    if not debug_only_loss:
+                        print("Weights ::")
+                        for j in w:
+                            print(j.eval())
+                        print("Biases ::")
+                        for j in b:
+                            print(j.eval())
                     print("Loss :: {0}".format(loss.eval(feed_dict={x: batch_inps, y_: batch_outs})))
-                    print("\n\n")
+                    if not debug_only_loss:
+                        print("\n\n")
                 # Train
                 self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
                 # Print status bar (debug)
@@ -404,8 +406,7 @@ class Network (object):
                 print("\nTRAINING COMPLETE")
 
             if debug_final_loss:
-                fLoss = loss.eval(feed_dict = {x: batch_inps, y_: batch_outs})
-                print "FINAL LOSS :: {0}".format(fLoss)
+                print("Final Loss :: {0}".format(loss.eval(feed_dict={x: data[0], y_: data[1]})))
 
             # Save weights and biases
             self.w = [i.eval() for i in w]
