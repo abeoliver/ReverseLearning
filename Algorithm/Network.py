@@ -453,10 +453,11 @@ class Network (object):
         elif type(tensor) == TENSOR:
             return tensor.eval(session = self._session, feed_dict = feed_dict)
         else:
-            raise TypeError
+            raise TypeError("Not a tensor")
 
     def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False,
-            loss_function="absolute_distance", shaping="none", activation="none"):
+            loss_function="absolute_distance", shaping="none", activation="none",
+            restrictions = {}):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -472,6 +473,7 @@ class Network (object):
                             - "none"            : no activiation function
                             - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
+            restrictions : a dictionary of range and type restrictions for the optimal
         """
         # Clean inputs
         # TODO Clean data for training IBP
@@ -479,6 +481,18 @@ class Network (object):
         epochs = int(epochs)
         learn_rate = float(learn_rate)
         target = self.clean(target)
+
+        # Apply restrictions
+        def applyRestrictions(x, restrictions):
+            opt = x.eval(session = self._session)
+            for k in restrictions.keys():
+                # If hard-set, then hard-set
+                if type(restrictions[k]) in [int, float]:
+                    if type(k) == int:
+                        opt[0][k] = restrictions[k]
+            o = tf.Variable(opt)
+            self._session.run(tf.initialize_variables([o]))
+            return o
 
         # Define paramaters
         # Input
@@ -538,8 +552,10 @@ class Network (object):
         self._session.run(tf.initialize_all_variables())
 
         # Train to find three inputs
+        optimal = applyRestrictions(optimal, restrictions)
         for i in range(epochs):
             self._session.run(train_step)
+            optimal = applyRestrictions(optimal, restrictions)
 
         if debug:
             print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))

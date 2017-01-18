@@ -21,7 +21,7 @@ def newSet(size, ins = 2):
 # INIT AND TRAIN NETWORK
 n = Network([4, 1])
 n.train(newSet(300, 4), epochs = 10001, learn_rate = .0001,
-        batch_size = 0, debug = False, debug_interval = 5000, customLoss = loss)
+        batch_size = 0, debug = False, debug_interval = 5000)
 
 # QUICK CHECK
 print "\n"
@@ -37,4 +37,5 @@ print "Biases"
 print n.b
 
 # Input Backprop
-n.ibp([[20]], epochs = 50000, learn_rate = .0001, debug = True)
+n.ibp([[20]], epochs = 0, learn_rate = .0001, debug = True,
+      restrictions = {0: 10, 1: 5})
