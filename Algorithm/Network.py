@@ -485,6 +485,8 @@ class Network (object):
         # Apply restrictions
         def applyRestrictions(x, restrictions):
             opt = x.eval(session = self._session)
+            print "--"
+            print opt
             for k in restrictions.keys():
                 # If hard-set, then hard-set
                 if type(restrictions[k]) in [int, float]:
@@ -552,10 +554,15 @@ class Network (object):
         self._session.run(tf.initialize_all_variables())
 
         # Train to find three inputs
-        optimal = applyRestrictions(optimal, restrictions)
         for i in range(epochs):
-            self._session.run(train_step)
+            # Apply restrictions
             optimal = applyRestrictions(optimal, restrictions)
+            # Apply training step to find optimal
+            self._session.run(train_step)
+            print "-----"
+            print optimal.eval(session = self._session)
+        # Apply final restrictions
+        optimal = applyRestrictions(optimal, restrictions)
 
         if debug:
             print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
