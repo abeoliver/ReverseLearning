@@ -19,9 +19,9 @@ def newSet(size, ins = 2):
     return (data, labels)
 
 # INIT AND TRAIN NETWORK
-n = Network([4, 1], activation = "none", shaping = "none")
+n = Network([4, 1])
 n.train(newSet(300, 4), epochs = 10001, learn_rate = .0001,
-        batch_size = 0, debug = False, debug_interval = 5000)
+        batch_size = 0, debug = False, debug_interval = 5000, customLoss = loss)
 
 # QUICK CHECK
 print "\n"

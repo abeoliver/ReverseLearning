@@ -31,7 +31,8 @@ class Network (object):
         - layers        : number of neurons in each layer
         - _session      : tensorflow session for network graph
     """
-    def __init__(self, layers, activation = "none", shaping = "none"):
+    def __init__(self, layers, activation = "none", shaping = "none",
+                 customActivation = None, customShaping = None):
         """
         Initialize the network with default weights and biases, a given design, and a tensorflow session
 
@@ -41,9 +42,11 @@ class Network (object):
             activation  : activation function to use
                             - "none"            : no activiation function
                             - "sigmoid"         : sigmoid function
+                            - "custom"          : apply a custom activation function
             shaping         : shaping function to use
                             - "none"            : no shaping function (DEFAULT)
                             - "softmax"         : the tensorflow softmax function
+                            - "custom"          : apply a custom shaping function
         """
         # Clean input
         # Must be list or tuple
@@ -57,14 +60,20 @@ class Network (object):
             if layers[layerIndex] <= 0: raise ValueError("Layer {0} must be above zero".format(layerIndex))
 
         # Clean shaping input
-        if shaping in ["none", "softmax"]:
+        if shaping in ["none", "softmax", "custom"]:
             self.shaping = shaping
+            if customShaping != None:
+                self.customShaping = customShaping
+                self.shaping = "custom"
         else:
             raise TypeError("'{0}' is not a valid shaping function".format(shaping))
 
         # Clean activation input
-        if activation in ["none", "sigmoid"]:
+        if activation in ["none", "sigmoid", "custom"]:
             self.activation = activation
+            if customActivation != None:
+                self.customActivation = customActivation
+                self.activation = "custom"
         else:
             raise TypeError("'{0}' is not a valid activation function".format(activation))
 
@@ -232,9 +241,6 @@ class Network (object):
         Parameters:
             - input_vector (Tensor, Nd-array,  list) : input_vector to feed through
             - evaluate (bool): evaluate output tensor. Yes or no?
-
-        NOTE:
-            Does not yet support shaping functions
         """
         # Clean input
         self.clean(input_vector)
@@ -256,6 +262,8 @@ class Network (object):
             # Apply activation if set
             if self.activation == "sigmoid":
                 return calc(tf.sigmoid(calculated), n + 1)
+            elif self.activation == "custom":
+                return calc(self.customActivation(calculated))
             else:
                 return calc(calculated, n + 1)
 
@@ -265,6 +273,8 @@ class Network (object):
         # Shape output
         if self.shaping == "softmax":
             y = tf.nn.softmax(calc(input_vector))
+        elif self.shaping == "custom":
+            y = self.customShaping(calc(input_vector))
         else:
             y = calc(input_vector)
 
@@ -276,7 +286,8 @@ class Network (object):
 
     def train(self, data, learn_rate = .001, epochs = 1000, batch_size = 0,
               loss_function = "mean_squared", debug = False, debug_interval = 2000,
-              debug_final_loss = False, silence = False, debug_only_loss = False):
+              debug_final_loss = False, silence = False, debug_only_loss = False,
+              customLoss = None):
         """
         Train the network using given data
 
@@ -287,6 +298,7 @@ class Network (object):
             loss_function : loss function to use
                             - "mean_squared"    : average of the squares of the errors (DEFAULT)
                             - "cross_entropy"   : cross entropy function
+                            - "custom"          : custom loss function
             debug       : on / off debug mode
             debug_interval : number of epochs between debugs
             debug_final_loss : print the final accuracy of the network (debug does not
@@ -331,27 +343,35 @@ class Network (object):
             # Apply activation if set
             if self.activation == "sigmoid":
                 return calc(tf.sigmoid(calculated), n + 1)
+            elif self.activation == "custom":
+                return calc(self.customActivation(calculated))
             else:
                 return calc(calculated, n + 1)
 
         # Shape output
         if self.shaping == "softmax":
             y = tf.nn.softmax(calc(x))
+        elif self.shaping == "custom":
+            y = self.customShaping(calc(x))
         else:
             y = calc(x)
         
         # Labels
         if self.activation == "sigmoid":
             y_ = tf.sigmoid(tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_"))
+        elif self.activation == "custom":
+            y_ = self.customActivation(tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_"))
         else:
             y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
         if loss_function == "cross_entropy":
             loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+        if loss_function == "custom" or customLoss != None:
+            loss = customLoss(y, y_)
         else:
             loss = tf.reduce_mean(tf.pow(y_ - y, 2))
-        
+
         # Optimizer
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
