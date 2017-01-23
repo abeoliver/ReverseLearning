@@ -376,15 +376,15 @@ class Network (object):
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
         # Minibatch creation
-        def newBatch():
+        def newBatch(bSize = batch_size):
             # If batch size is zero, use full dataset
-            if batch_size == 0:
+            if bSize == 0:
                 return data
             else:
                 # Randomly choose inputs and corresponding labels for batches
                 ins = []
                 lbls = []
-                for i in range(batch_size):
+                for i in range(bSize):
                     r = randint(0, len(data[0]) - 1)
                     ins.append(data[0][r])
                     lbls.append(data[1][r])
@@ -426,7 +426,8 @@ class Network (object):
                 print("\nTRAINING COMPLETE")
 
             if debug_final_loss:
-                print("Final Loss :: {0}".format(loss.eval(feed_dict={x: data[0], y_: data[1]})))
+                batch = newBatch(0)
+                print("Final Loss :: {0}".format(loss.eval(feed_dict={x: batch[0], y_: batch[1]})))
 
             # Save weights and biases
             self.w = [i.eval() for i in w]
@@ -485,17 +486,16 @@ class Network (object):
         # Apply restrictions
         def applyRestrictions(x, restrictions):
             opt = x.eval(session = self._session)
-            print "--"
-            print opt
             for k in restrictions.keys():
                 # If hard-set, then hard-set
                 if type(restrictions[k]) in [int, float]:
                     if type(k) == int:
                         opt[0][k] = restrictions[k]
-            o = tf.Variable(opt)
-            self._session.run(tf.initialize_variables([o]))
-            return o
+            c = tf.constant(opt)
+            self._session.run(x.assign(c))
+            return x
 
+        # <editor-fold desc="Model Definitions">
         # Define paramaters
         # Input
         optimal = tf.Variable(tf.zeros([1, self.layers[0]]))
@@ -552,17 +552,20 @@ class Network (object):
 
         # Initialize
         self._session.run(tf.initialize_all_variables())
+        # </editor-fold>
 
         # Train to find three inputs
+        optimal = applyRestrictions(optimal, restrictions)
         for i in range(epochs):
+            if i % 1000 == 0:
+                print optimal.eval(session= self._session)
             # Apply restrictions
             optimal = applyRestrictions(optimal, restrictions)
             # Apply training step to find optimal
             self._session.run(train_step)
-            print "-----"
-            print optimal.eval(session = self._session)
+            #print optimal.eval(session = self._session)
         # Apply final restrictions
-        optimal = applyRestrictions(optimal, restrictions)
+        #optimal = applyRestrictions(optimal, restrictions)
 
         if debug:
             print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
