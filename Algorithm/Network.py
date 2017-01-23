@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor as TENSOR
 import numpy as np
 from random import randint
+from time import time
 
 # TODO Add support for custom activation, shaping, and loss functions
 
@@ -458,7 +459,7 @@ class Network (object):
 
     def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False,
             loss_function="absolute_distance", shaping="none", activation="none",
-            restrictions = {}):
+            restrictions = {}, debug_interval = 10000):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -466,6 +467,7 @@ class Network (object):
         Parameters:
             target          : target value
             epochs          : number of epochs to run (DEFAULT 1000)
+                            - (-1) runs until error is below learning rate
             loss_function   : loss function to use (DEFAULT absolute distance)
                             - "absolute_distance" : absolute difference between label and output
                             - "cross_entropy"   : cross entropy function
@@ -475,6 +477,7 @@ class Network (object):
                             - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
             restrictions : a dictionary of range and type restrictions for the optimal
+            debug_interval : number of epochs between each debug statement
         """
         # Clean inputs
         # TODO Clean data for training IBP
@@ -555,22 +558,41 @@ class Network (object):
         # </editor-fold>
 
         # Train to find three inputs
-        optimal = applyRestrictions(optimal, restrictions)
-        for i in range(epochs):
-            if i % 1000 == 0:
-                print optimal.eval(session= self._session)
+        counter = 0
+        while True:
+            time0 = time()
             # Apply restrictions
             optimal = applyRestrictions(optimal, restrictions)
+
+            # Debug printing
+            if counter % debug_interval == 0 and debug:
+                print "@ Epoch {0} :: {1}".format(counter, optimal.eval(session= self._session))
+
+            # Break if error is 0 or within learning rate of zero
+            # This is the only escape if epochs is set to -1
+            if tf.abs((lbl - out)).eval(session = self._session) <= learn_rate: break
+
+            # Break if epochs limit reached
+            if counter >= epochs and epochs != -1: break
+
             # Apply training step to find optimal
             self._session.run(train_step)
-            #print optimal.eval(session = self._session)
+
+            # Debug printing for profiling
+            if counter % debug_interval == 0 and debug:
+                print "Time for Epoch {0} :: {1}\n".format(counter, time() - time0)
+
+            # Increment counter
+            counter += 1
+
         # Apply final restrictions
-        #optimal = applyRestrictions(optimal, restrictions)
+        optimal = applyRestrictions(optimal, restrictions)
 
         if debug:
             print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
             print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
             print("TARGET OUT          :: {0}".format(target))
-            print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
+            print("ERROR               :: {0}".format((lbl - out).eval(session = self._session)))
+            print("EPOCHS              :: {0}".format(counter))
 
         return optimal.eval(session = self._session)
