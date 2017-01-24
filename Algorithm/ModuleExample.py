@@ -39,7 +39,7 @@ n.initBiases(mode="zeros")
 # print n.b
 
 # Input Backprop
-n.ibp([[1000]], epochs = -1,
+n.ibp([[100]], epochs = -1,
       learn_rate = .1, debug = True,
-      restrictions = {0: 10, 1: 5},
-      debug_interval = 400)
+      restrictions = {0: 10, 1: 5, 2: (0, 2)},
+      debug_interval = 1)

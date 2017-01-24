@@ -477,6 +477,9 @@ class Network (object):
                             - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
             restrictions : a dictionary of range and type restrictions for the optimal
+                         - Format: {index0 : restriction0, ..., indexN : restrictionN}
+                         - For constant value: restrictionX = value
+                         - For range: restricionX = (lower, upper)
             debug_interval : number of epochs between each debug statement
         """
         # Clean inputs
@@ -486,14 +489,22 @@ class Network (object):
         learn_rate = float(learn_rate)
         target = self.clean(target)
 
+        def applyRestrictions():
+            for k in restrictions.keys():
+                if type(restrictions[k]) in [list, tuple]:
+                    s = tf.nn.sigmoid(optimal[0][k])
+                    a = tf.mul(s, tf.cast(tf.sub(restrictions[k][1], restrictions[k][0]), tf.float32))
+                    o = tf.add(a, restrictions[k][0])
+                    self._session.run(optimal[0][k].assign(o))
+
         # <editor-fold desc="Model Definitions">
         # Define paramaters
         # Input
         # Start with all 0-variables
         optimal = [[tf.Variable(0.0) for i in range(self.layers[0])]]
-        # Apply restrictions
+        # Apply constant restrictions
         for k in restrictions.keys():
-            if type(k) == int:
+            if type(restrictions[k]) == int:
                 optimal[0][k] = tf.constant(float(restrictions[k]))
 
         # Input Weights
@@ -578,6 +589,7 @@ class Network (object):
             if counter >= epochs and epochs != -1: break
 
             # Apply training step to find optimal
+            applyRestrictions()
             self._session.run(train_step)
 
             # Debug printing for profiling
