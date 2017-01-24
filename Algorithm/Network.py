@@ -486,22 +486,15 @@ class Network (object):
         learn_rate = float(learn_rate)
         target = self.clean(target)
 
-        # Apply restrictions
-        def applyRestrictions(x, restrictions):
-            opt = x.eval(session = self._session)
-            for k in restrictions.keys():
-                # If hard-set, then hard-set
-                if type(restrictions[k]) in [int, float]:
-                    if type(k) == int:
-                        opt[0][k] = restrictions[k]
-            c = tf.constant(opt)
-            self._session.run(x.assign(c))
-            return x
-
         # <editor-fold desc="Model Definitions">
         # Define paramaters
         # Input
-        optimal = tf.Variable(tf.zeros([1, self.layers[0]]))
+        # Start with all 0-variables
+        optimal = [[tf.Variable(0.0) for i in range(self.layers[0])]]
+        # Apply restrictions
+        for k in restrictions.keys():
+            if type(k) == int:
+                optimal[0][k] = tf.constant(float(restrictions[k]))
 
         # Input Weights
         w = [tf.constant(i) for i in self.w]
@@ -551,7 +544,10 @@ class Network (object):
             loss = tf.pow(lbl - out, 2)
 
         # Optimizer
-        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
+        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss, var_list = [optimal[0][2], optimal[0][3]])
+
+        # Absolute Error
+        absoluteError = tf.abs((lbl - out))
 
         # Initialize
         self._session.run(tf.initialize_all_variables())
@@ -560,17 +556,23 @@ class Network (object):
         # Train to find three inputs
         counter = 0
         while True:
+            # Profiling
             time0 = time()
-            # Apply restrictions
-            optimal = applyRestrictions(optimal, restrictions)
 
             # Debug printing
             if counter % debug_interval == 0 and debug:
-                print "@ Epoch {0} :: {1}".format(counter, optimal.eval(session= self._session))
+                # Combine optimal of constants and variables
+                op = []
+                for i in optimal[0]:
+                    if type(i) == tf.constant:
+                        op.append(i)
+                    else:
+                        op.append(i.eval(session=self._session))
+                print "@ Epoch {0} :: {1}".format(counter, op)
 
             # Break if error is 0 or within learning rate of zero
             # This is the only escape if epochs is set to -1
-            if tf.abs((lbl - out)).eval(session = self._session) <= learn_rate: break
+            if absoluteError.eval(session = self._session) <= learn_rate: break
 
             # Break if epochs limit reached
             if counter >= epochs and epochs != -1: break
@@ -585,14 +587,19 @@ class Network (object):
             # Increment counter
             counter += 1
 
-        # Apply final restrictions
-        optimal = applyRestrictions(optimal, restrictions)
+        # Combine optimal of constants and variables
+        op = []
+        for i in optimal[0]:
+            if type(i) == tf.constant:
+                op.append(i)
+            else:
+                op.append(i.eval(session=self._session))
 
         if debug:
-            print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
-            print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
+            print("OPTIMAL INPUT       :: {0}".format(op))
+            print("CALCULATED OUT      :: {0}".format(calc(optimal).eval(session = self._session)))
             print("TARGET OUT          :: {0}".format(target))
-            print("ERROR               :: {0}".format((lbl - out).eval(session = self._session)))
+            print("ERROR               :: {0}".format(absoluteError.eval(session = self._session)))
             print("EPOCHS              :: {0}".format(counter))
 
-        return optimal.eval(session = self._session)
+        return op

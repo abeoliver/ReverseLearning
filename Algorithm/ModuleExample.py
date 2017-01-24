@@ -42,4 +42,4 @@ n.initBiases(mode="zeros")
 n.ibp([[1000]], epochs = -1,
       learn_rate = .1, debug = True,
       restrictions = {0: 10, 1: 5},
-      debug_interval = 100)
+      debug_interval = 400)
