@@ -39,7 +39,36 @@ n.initBiases(mode="zeros")
 # print n.b
 
 # Input Backprop
-n.ibp([[25]], epochs = -1,
-      learn_rate = .1, debug = True,
-      restrictions = {0: 10, 1: 5, 2: (1, 3)},
-      debug_interval = 1)
+# n.ibp([[25]], epochs = -1,
+#       learn_rate = .1, debug = True,
+#       restrictions = {0: 10, 1: 5, 2: (1, 3)},
+#       debug_interval = 1)
+
+# s = tf.Session()
+#
+# def sig(z):
+#     return tf.nn.sigmoid(tf.constant(.000001) * z)
+#
+# def f(x, b, t):
+#     q = sig(x)
+#     w = tf.mul(q, tf.cast(tf.sub(t, b), tf.float32))
+#     return tf.add(w, b)
+#
+# def b(x, t):
+#     return (x - sig(x) * t) / (1 - sig(x))
+#
+# def t(x, b):
+#     return (x - b + (sig(x) * b)) / sig(x)
+#
+#
+# # i = 100.000023
+# # q = [[tf.constant(float(i))]]
+# # w = [[tf.constant(b(float(i), float(i)).eval(session = s))]]
+# # e = [[tf.constant(float(i))]]
+#
+# x = [[10.0, 5.0, 6.0, 0.0]]
+# lp = n._getRestrictionVectors({0: 10, 1: 5, 2: (1, 3)}, x)
+# for i in range(len(lp[0])):
+#     print "{0} -- {1}".format(lp[0][i].eval(session = s), lp[1][i].eval(session = s))
+# print f(x, b(x, x), x).eval(session = s)
+# print f(x, lp[0], lp[1]).eval(session = n._session)

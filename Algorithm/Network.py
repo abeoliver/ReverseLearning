@@ -497,12 +497,11 @@ class Network (object):
                     o = tf.add(a, restrictions[k][0])
                     self._session.run(optimal[0][k].assign(o))
 
-        def rangeRestrict(lower, upper):
-            s = tf.nn.sigmoid(optimal[0][k])
+        def rangeRestrict(inp, lower, upper):
+            s = tf.nn.sigmoid(inp)
             a = tf.mul(s, tf.cast(tf.sub(upper, lower), tf.float32))
             return tf.add(a, lower)
 
-        # <editor-fold desc="Model Definitions">
         # Define paramaters
         # Input
         # Start with all 0-variables
@@ -527,6 +526,7 @@ class Network (object):
                 rVector[1].append(0)
         print rVector
 
+        # <editor-fold desc="Temp">
         # Input Weights
         w = [tf.constant(i) for i in self.w]
 
@@ -588,7 +588,6 @@ class Network (object):
 
         # Initialize
         self._session.run(tf.initialize_all_variables())
-        # </editor-fold>
 
         # Train to find three inputs
         counter = 0
@@ -638,5 +637,31 @@ class Network (object):
             print("TARGET OUT          :: {0}".format(target))
             print("ERROR               :: {0}".format(absoluteError.eval(session = self._session)))
             print("EPOCHS              :: {0}".format(counter))
-
+        # </editor-fold>
         return op
+
+    def _getRestrictionVectors(self, restrictions, vars):
+        rVector = [[], []]
+
+        # Get bottom of a range to negate function
+        def b(x):
+            return (x - sig(x) * x) / (1 - sig(x))
+
+        # Slightly modified sigmoid function
+        def sig(z):
+            return tf.nn.sigmoid(tf.constant(.000001) * z)
+
+        for i in range(len(vars[0])):
+            if i in restrictions.keys():
+                if type(restrictions[i]) in [list, tuple]:
+                    rVector[0].append(tf.constant(float(restrictions[i][0])))
+                    rVector[1].append(tf.constant(float(restrictions[i][1])))
+                else:
+                    rVector[0].append(tf.constant(float(b(restrictions[i])
+                                                        .eval(session = self._session))))
+                    rVector[1].append(tf.constant(float(restrictions[i])))
+            else:
+                rVector[0].append(tf.constant(float(b(vars[0][i])
+                                                    .eval(session = self._session))))
+                rVector[1].append(tf.constant(float(vars[0][i])))
+        return rVector
