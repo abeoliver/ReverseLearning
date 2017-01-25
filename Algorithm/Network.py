@@ -497,6 +497,11 @@ class Network (object):
                     o = tf.add(a, restrictions[k][0])
                     self._session.run(optimal[0][k].assign(o))
 
+        def rangeRestrict(lower, upper):
+            s = tf.nn.sigmoid(optimal[0][k])
+            a = tf.mul(s, tf.cast(tf.sub(upper, lower), tf.float32))
+            return tf.add(a, lower)
+
         # <editor-fold desc="Model Definitions">
         # Define paramaters
         # Input
@@ -506,6 +511,21 @@ class Network (object):
         for k in restrictions.keys():
             if type(restrictions[k]) == int:
                 optimal[0][k] = tf.constant(float(restrictions[k]))
+
+        # Restriction vector
+        rVector = [[], []]
+        for i in range(self.layers[0]):
+            if i < len(restrictions):
+                if type(restrictions[i]) in [list, tuple]:
+                    rVector[0].append(restrictions[i][0])
+                    rVector[1].append(restrictions[i][1])
+                else:
+                    rVector[0].append(0)
+                    rVector[1].append(0)
+            else:
+                rVector[0].append(0)
+                rVector[1].append(0)
+        print rVector
 
         # Input Weights
         w = [tf.constant(i) for i in self.w]
@@ -526,6 +546,8 @@ class Network (object):
                 else:
                     return calculated
             # Continue recursion
+            # Tensorflow control flow for restriction application
+
             calculated = tf.matmul(inp, w[n], name="mul{0}".format(n)) + b[n]
             # Apply activation if set
             if self.activation == "sigmoid":
@@ -555,7 +577,11 @@ class Network (object):
             loss = tf.pow(lbl - out, 2)
 
         # Optimizer
-        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss, var_list = [optimal[0][2], optimal[0][3]])
+        vlist = []
+        for i in optimal[0]:
+            if type(i) == tf.Variable:
+                vlist.append(i)
+        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss, var_list = vlist)
 
         # Absolute Error
         absoluteError = tf.abs((lbl - out))
@@ -589,7 +615,6 @@ class Network (object):
             if counter >= epochs and epochs != -1: break
 
             # Apply training step to find optimal
-            applyRestrictions()
             self._session.run(train_step)
 
             # Debug printing for profiling
