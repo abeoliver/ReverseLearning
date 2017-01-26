@@ -109,6 +109,11 @@ class Network (object):
             - mean      : if using random generation, the mean
             - stddev    : if using random generation, the standard deviation
             - preset    : if using present values, the preset values
+
+        Note:
+            Preset must be of form [ [ w1,1  | [w2,1
+                                       w1,2] |  w2,2] ]
+            Which is equivalent to [[]]
         """
         # Clean input
         # Change mode to all lowercase
@@ -190,7 +195,16 @@ class Network (object):
         if preset != []:
             # Preset must be a list, array, tuple, or tensor
             # TODO Clean preset input
-            self.b = preset
+            # Preset must be a list, array, tuple, or tensor
+            preset = self._clean(preset)
+            b = []
+            for i in preset:
+                q = []
+                for j in i:
+                    q.append(np.float32(j))
+                b.append(np.array(q))
+            self.b = b
+            return None
         elif mode in ["preset", "presets", "pre", "p"]:
             # If Mode is set to preset but no preset is given, raise error
             # Implied that preset wasn't given because the first if didn't trigger
@@ -527,10 +541,14 @@ class Network (object):
         # Output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
-            # Get restricion vectors
-            rv = self._getRestrictionVectors(restrictions, inp)
-            # Apply restriction vectors
-            x = self._applyRestrictionVector(inp, rv)
+            # Apply restrictions if on the first loop
+            if n == 0:
+                # Get restricion vectors
+                rv = self._getRestrictionVectors(restrictions, inp)
+                # Apply restriction vectors
+                x = self._applyRestrictionVector(inp, rv)
+            else:
+                x = inp
             # End recursion
             if n == len(self.layers) - 2:
                 # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
