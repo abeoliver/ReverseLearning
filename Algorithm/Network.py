@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow.python.framework.ops import Tensor as TENSOR
 import numpy as np
 from random import randint
+from time import time
 
 # TODO Add support for custom activation, shaping, and loss functions
 
@@ -18,7 +19,7 @@ class Network (object):
         - initValues    : initiate default weights and biases
         - intiWeights   : initiate weights with given paramaters
         - initBiases    : initiate biases with given paramaters
-        - clean         : clean an input and fix it if wrong format
+        - _clean         : _clean an input and fix it if wrong format
         - feed          : feed an input into the network
         - train         : train the network with given data
         - ibp           : perform the Input Backpropagation algorithm
@@ -31,7 +32,8 @@ class Network (object):
         - layers        : number of neurons in each layer
         - _session      : tensorflow session for network graph
     """
-    def __init__(self, layers, activation = "none", shaping = "none"):
+    def __init__(self, layers, activation = "none", shaping = "none",
+                 customActivation = None, customShaping = None):
         """
         Initialize the network with default weights and biases, a given design, and a tensorflow session
 
@@ -41,9 +43,11 @@ class Network (object):
             activation  : activation function to use
                             - "none"            : no activiation function
                             - "sigmoid"         : sigmoid function
+                            - "custom"          : apply a custom activation function
             shaping         : shaping function to use
                             - "none"            : no shaping function (DEFAULT)
                             - "softmax"         : the tensorflow softmax function
+                            - "custom"          : apply a custom shaping function
         """
         # Clean input
         # Must be list or tuple
@@ -57,14 +61,20 @@ class Network (object):
             if layers[layerIndex] <= 0: raise ValueError("Layer {0} must be above zero".format(layerIndex))
 
         # Clean shaping input
-        if shaping in ["none", "softmax"]:
+        if shaping in ["none", "softmax", "custom"]:
             self.shaping = shaping
+            if customShaping != None:
+                self.customShaping = customShaping
+                self.shaping = "custom"
         else:
             raise TypeError("'{0}' is not a valid shaping function".format(shaping))
 
         # Clean activation input
-        if activation in ["none", "sigmoid"]:
+        if activation in ["none", "sigmoid", "custom"]:
             self.activation = activation
+            if customActivation != None:
+                self.customActivation = customActivation
+                self.activation = "custom"
         else:
             raise TypeError("'{0}' is not a valid activation function".format(activation))
 
@@ -99,6 +109,11 @@ class Network (object):
             - mean      : if using random generation, the mean
             - stddev    : if using random generation, the standard deviation
             - preset    : if using present values, the preset values
+
+        Note:
+            Preset must be of form [ [ w1,1  | [w2,1
+                                       w1,2] |  w2,2] ]
+            Which is equivalent to [[]]
         """
         # Clean input
         # Change mode to all lowercase
@@ -116,8 +131,15 @@ class Network (object):
 
         if preset != []:
             # Preset must be a list, array, tuple, or tensor
-            # TODO Clean preset input
-            self.w = preset
+            preset = self._clean(preset)
+            w = []
+            for i in preset:
+                q = []
+                for j in i:
+                    q.append(np.float32(j))
+                w.append(np.array(q))
+            self.w = w
+            return None
         elif mode in ["preset", "presets", "pre", "p"]:
             # If Mode is set to preset but no preset is given, raise error
             # Implied that preset wasn't given because the first if didn't trigger
@@ -173,7 +195,16 @@ class Network (object):
         if preset != []:
             # Preset must be a list, array, tuple, or tensor
             # TODO Clean preset input
-            self.b = preset
+            # Preset must be a list, array, tuple, or tensor
+            preset = self._clean(preset)
+            b = []
+            for i in preset:
+                q = []
+                for j in i:
+                    q.append(np.float32(j))
+                b.append(np.array(q))
+            self.b = b
+            return None
         elif mode in ["preset", "presets", "pre", "p"]:
             # If Mode is set to preset but no preset is given, raise error
             # Implied that preset wasn't given because the first if didn't trigger
@@ -196,7 +227,7 @@ class Network (object):
         # Save biases
         self.b = [i.eval(session = self._session) for i in self.b]
 
-    def clean(self, input_vector):
+    def _clean(self, input_vector):
         """Clean input for network functions"""
         ityp = type(input_vector)
         # All entries must be floats
@@ -217,48 +248,68 @@ class Network (object):
         # Input must be a list, array, or tensor of lists, arrays, or tensors
         ityp2 = type(input_vector[0])
         if ityp2 not in [list, tuple, np.ndarray, tf.Variable, tf.constant]:
-            if ityp2 == int or ityp2 == float:
+            if ityp2 in [int, float, np.int32, np.float32, np.int64, np.float64]:
                 input_vector = [input_vector]
             else:
                 raise TypeError("Input must be a list, array, or tensor of ints, floats, lists, arrays, or tensors")
 
-        # Finally, clean returned input
+        # Finally, _clean returned input
         return input_vector
 
-    def feed(self, input_vector, evaluate = False):
+    def feed(self, input_vector, evaluate = True):
         """
         Feed-forward input_vector through network
 
         Parameters:
             - input_vector (Tensor, Nd-array,  list) : input_vector to feed through
             - evaluate (bool): evaluate output tensor. Yes or no?
-
-        NOTE:
-            Does not yet support shaping functions
         """
         # Clean input
-        self.clean(input_vector)
+        self._clean(input_vector)
 
-        # Recursive calculation function
+        # Predicted output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
+            # End recursion
             if n == len(self.layers) - 2:
-                return tf.matmul(inp, self.w[n]) + self.b[n]
-            return calc(tf.matmul(inp, self.w[n]) + self.b[n], n + 1)
+                # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
+                calculated = tf.matmul(inp, self.w[n], name="mul{0}".format(n)) + self.b[n]
+                # Apply activation if set
+                if self.activation == "sigmoid":
+                    return tf.sigmoid(calculated)
+                else:
+                    return calculated
+            # Continue recursion
+            calculated = tf.matmul(inp, self.w[n], name="mul{0}".format(n)) + self.b[n]
+            # Apply activation if set
+            if self.activation == "sigmoid":
+                return calc(tf.sigmoid(calculated), n + 1)
+            elif self.activation == "custom":
+                return calc(self.customActivation(calculated))
+            else:
+                return calc(calculated, n + 1)
 
         # Clean input_vector
-        input_vector = self.clean(input_vector)
+        input_vector = self._clean(input_vector)
+
+        # Shape output
+        if self.shaping == "softmax":
+            y = tf.nn.softmax(calc(input_vector))
+        elif self.shaping == "custom":
+            y = self.customShaping(calc(input_vector))
+        else:
+            y = calc(input_vector)
 
         # Begin and return recursively calculated output
-        # TODO same shaping function for feed and train
         if evaluate:
-            return self.eval(calc(input_vector))
+            return self.eval(y)
         else:
-            return calc(input_vector)
+            return calc(y)
 
     def train(self, data, learn_rate = .001, epochs = 1000, batch_size = 0,
               loss_function = "mean_squared", debug = False, debug_interval = 2000,
-              debug_final_loss = False, silence = False):
+              debug_final_loss = False, silence = False, debug_only_loss = False,
+              customLoss = None):
         """
         Train the network using given data
 
@@ -269,11 +320,13 @@ class Network (object):
             loss_function : loss function to use
                             - "mean_squared"    : average of the squares of the errors (DEFAULT)
                             - "cross_entropy"   : cross entropy function
+                            - "custom"          : custom loss function
             debug       : on / off debug mode
             debug_interval : number of epochs between debugs
             debug_final_loss : print the final accuracy of the network (debug does not
                                         have to be enabled)
-            silence     : print NOTHING
+            debug_only_loss : don't print weights and biases on debug (debug must be enabled)
+            silence     : print NOTHING (debug_final_loss is exception)
         """
         # TODO Clean data for training
         # TODO Clean training parameters
@@ -281,10 +334,8 @@ class Network (object):
         epochs = int(epochs)
         learn_rate = float(learn_rate)
 
-        # Turn of all printing if silence is on
-        if silence:
-            debug = False
-            debug_final_loss = False
+        # Turn of all printing if silence is on (except debug_final_loss)
+        if silence: debug = False
         
         # Parameters
         # Input
@@ -314,38 +365,49 @@ class Network (object):
             # Apply activation if set
             if self.activation == "sigmoid":
                 return calc(tf.sigmoid(calculated), n + 1)
+            elif self.activation == "custom":
+                return calc(self.customActivation(calculated))
             else:
                 return calc(calculated, n + 1)
 
         # Shape output
         if self.shaping == "softmax":
             y = tf.nn.softmax(calc(x))
+        elif self.shaping == "custom":
+            y = self.customShaping(calc(x))
         else:
             y = calc(x)
         
         # Labels
-        y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
+        if self.activation == "sigmoid":
+            y_ = tf.sigmoid(tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_"))
+        elif self.activation == "custom":
+            y_ = self.customActivation(tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_"))
+        else:
+            y_ = tf.placeholder(tf.float32, [None, self.layers[-1]], name = "y_")
 
         # Loss function TODO Add more loss functions
         if loss_function == "cross_entropy":
             loss = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+        if loss_function == "custom" or customLoss != None:
+            loss = customLoss(y, y_)
         else:
             loss = tf.reduce_mean(tf.pow(y_ - y, 2))
-        
+
         # Optimizer
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
 
         # Minibatch creation
-        def newBatch():
+        def newBatch(bSize = batch_size):
             # If batch size is zero, use full dataset
-            if batch_size == 0:
+            if bSize == 0:
                 return data
             else:
                 # Randomly choose inputs and corresponding labels for batches
                 ins = []
                 lbls = []
-                for i in range(batch_size):
-                    r = randint(0, len(data) - 1)
+                for i in range(bSize):
+                    r = randint(0, len(data[0]) - 1)
                     ins.append(data[0][r])
                     lbls.append(data[1][r])
                 return [ins, lbls]
@@ -366,25 +428,28 @@ class Network (object):
                 batch_inps, batch_outs = newBatch()
                 # Debug printing
                 if i % debug_interval == 0 and debug:
-                    print("Weights ::")
-                    for j in w:
-                        print(j.eval())
-                    print("Biases ::")
-                    for j in b:
-                        print(j.eval())
+                    if not debug_only_loss:
+                        print("Weights ::")
+                        for j in w:
+                            print(j.eval())
+                        print("Biases ::")
+                        for j in b:
+                            print(j.eval())
                     print("Loss :: {0}".format(loss.eval(feed_dict={x: batch_inps, y_: batch_outs})))
-                    print("\n\n")
+                    if not debug_only_loss:
+                        print("\n\n")
                 # Train
                 self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
                 # Print status bar (debug)
-                if i % STATUS_INTERVAL == 0 and not debug: print" * ",
+                if not debug and not silence:
+                    if i % STATUS_INTERVAL == 0: print" * ",
             # Debug
             if not silence and not debug:
                 print("\nTRAINING COMPLETE")
 
             if debug_final_loss:
-                fLoss = loss.eval(feed_dict = {x: batch_inps, y_: batch_outs})
-                print "FINAL LOSS :: {0}".format(fLoss)
+                batch = newBatch(0)
+                print("Final Loss :: {0}".format(loss.eval(feed_dict={x: batch[0], y_: batch[1]})))
 
             # Save weights and biases
             self.w = [i.eval() for i in w]
@@ -411,10 +476,12 @@ class Network (object):
         elif type(tensor) == TENSOR:
             return tensor.eval(session = self._session, feed_dict = feed_dict)
         else:
-            raise TypeError
+            raise TypeError("Not a tensor")
 
     def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False,
-            loss_function="absolute_distance", shaping="none", activation="none"):
+            loss_function="absolute_distance", shaping="none", activation="none",
+            restrictions = {}, debug_interval = -1, error_tolerance = None,
+            rangeGradientScalar = 100000000.0):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -422,6 +489,7 @@ class Network (object):
         Parameters:
             target          : target value
             epochs          : number of epochs to run (DEFAULT 1000)
+                            - (-1) runs until error is below learning rate
             loss_function   : loss function to use (DEFAULT absolute distance)
                             - "absolute_distance" : absolute difference between label and output
                             - "cross_entropy"   : cross entropy function
@@ -430,18 +498,40 @@ class Network (object):
                             - "none"            : no activiation function
                             - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
+            restrictions : a dictionary of range and type restrictions for the optimal
+                         - Format: {index0 : restriction0, ..., indexN : restrictionN}
+                         - For constant value: restrictionX = value
+                         - For range: restricionX = (lower, upper)
+            debug_interval : number of epochs between each debug statement
+                            - Use a negative number to only print ending statement
+            error_tolerance : the largest acceptable error before auto-breaking
+                            (default is learn_rate)
+            rangeGradientScalar : scalar for the gradients of the range-restricted vars
         """
         # Clean inputs
         # TODO Clean data for training IBP
         # TODO Clean training parameters IBP
         epochs = int(epochs)
         learn_rate = float(learn_rate)
-        target = self.clean(target)
+        target = self._clean(target)
+        if error_tolerance == None: error_tolerance = learn_rate
+
+        # Range restriction list
+        rangeRestricted = []
+        for i in restrictions.keys():
+            if type(restrictions[i]) in [list, tuple]:
+                rangeRestricted.append(i)
 
         # Define paramaters
         # Input
-        optimal = tf.Variable(tf.zeros([1, self.layers[0]]))
+        # Start with all 0-variables
+        optimal = [[tf.Variable(0.0) for i in range(self.layers[0])]]
+        # Apply constant restrictions
+        for k in restrictions.keys():
+            if type(restrictions[k]) in [float, int]:
+                optimal[0][k] = tf.constant(float(restrictions[k]))
 
+        # <editor-fold desc="Temp">
         # Input Weights
         w = [tf.constant(i) for i in self.w]
 
@@ -451,17 +541,25 @@ class Network (object):
         # Output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
+            # Apply restrictions if on the first loop
+            if n == 0:
+                # Get restricion vectors
+                rv = self._getRestrictionVectors(restrictions, inp)
+                # Apply restriction vectors
+                x = self._applyRestrictionVector(inp, rv)
+            else:
+                x = inp
             # End recursion
             if n == len(self.layers) - 2:
                 # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
-                calculated = tf.matmul(inp, w[n], name="mul{0}".format(n)) + b[n]
+                calculated = tf.matmul(x, w[n], name="mul{0}".format(n)) + b[n]
                 # Apply activation if set
                 if self.activation == "sigmoid":
                     return tf.sigmoid(calculated)
                 else:
                     return calculated
             # Continue recursion
-            calculated = tf.matmul(inp, w[n], name="mul{0}".format(n)) + b[n]
+            calculated = tf.matmul(x, w[n], name="mul{0}".format(n)) + b[n]
             # Apply activation if set
             if self.activation == "sigmoid":
                 return calc(tf.sigmoid(calculated), n + 1)
@@ -475,7 +573,10 @@ class Network (object):
             out = calc(optimal)
 
         # Label
-        lbl = tf.constant(target)
+        if self.activation == "sigmoid":
+            lbl = tf.sigmoid(tf.constant(target))
+        else:
+            lbl = tf.constant(target)
 
         # Training with quadratic cost and gradient descent with learning rate .01
         # Loss function TODO Add more loss functions IBP
@@ -487,19 +588,115 @@ class Network (object):
             loss = tf.pow(lbl - out, 2)
 
         # Optimizer
-        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
+        vlist = []
+        for i in optimal[0]:
+            if type(i) == tf.Variable:
+                vlist.append(i)
+        trainer = tf.train.ProximalGradientDescentOptimizer(learn_rate)
+        gradients = trainer.compute_gradients(loss, var_list = vlist)
+
+        # Increase gradients (only if range restricted
+        def raiseGrad(grad, var):
+            return (tf.mul(grad, rangeGradientScalar), var)
+        newGrads = [raiseGrad(gradients[g][0], gradients[g][1]) if g in rangeRestricted
+                    else (gradients[g][0], gradients[g][1])
+                    for g in range(len(gradients))]
+
+        # Gradient application
+        applyNewGrads = trainer.apply_gradients(newGrads)
+
+        # Absolute Error
+        absoluteError = tf.abs((lbl - out))
 
         # Initialize
         self._session.run(tf.initialize_all_variables())
 
         # Train to find three inputs
-        for i in range(epochs):
-            self._session.run(train_step)
+        counter = 0
+        while True:
+            # Profiling
+            time0 = time()
+
+            # Debug printing
+            if counter % debug_interval == 0 and debug and debug_interval > 0:
+                # Combine optimal of constants and variables
+                op = []
+                for i in optimal[0]:
+                    if type(i) == tf.constant:
+                        op.append(i)
+                    else:
+                        op.append(i.eval(session=self._session))
+                print "@ Epoch {0} :: {1}".format(counter, op)
+                # Get restricion vectors
+                rv = self._getRestrictionVectors(restrictions, optimal)
+                # Apply restriction vectors
+                q = self._applyRestrictionVector(optimal, rv).eval(session=self._session)
+                print "Evaluated :: {0}".format(q)
+
+            # Break if error is 0 or within learning rate of zero
+            # This is the only escape if epochs is set to -1
+            if absoluteError.eval(session = self._session) <= error_tolerance: break
+
+            # Break if epochs limit reached
+            if counter >= epochs and epochs != -1: break
+
+            # Apply training step to find optimal
+            self._session.run(applyNewGrads)
+
+            # Debug printing for profiling
+            if counter % debug_interval == 0 and debug and debug_interval > 0:
+                print "Time for Epoch {0} :: {1}\n".format(counter, time() - time0)
+
+            # Increment counter
+            counter += 1
+
+        # Finalize restricted output
+        # Get restricion vectors
+        rv = self._getRestrictionVectors(restrictions, optimal)
+        # Apply restriction vectors
+        final = self._applyRestrictionVector(optimal, rv).eval(session = self._session)
 
         if debug:
-            print("OPTIMAL INPUT       :: {0}".format(optimal.eval(session = self._session)))
-            print("CALCULATED OUT      :: {0}".format(calc(optimal.eval(session = self._session)).eval(session = self._session)))
+            print("\nOPTIMAL INPUT       :: {0}".format(final))
+            print("CALCULATED OUT      :: {0}".format(calc(optimal).eval(session = self._session)))
             print("TARGET OUT          :: {0}".format(target))
-            print("TARGET vs CALC LOSS :: {0}".format(loss.eval(session = self._session)))
+            print("ERROR               :: {0}".format(absoluteError.eval(session = self._session)))
+            print("EPOCHS              :: {0}".format(counter))
+        # </editor-fold>
+        return final
 
-        return optimal.eval(session = self._session)
+    def _getRestrictionVectors(self, restrictions, vars):
+        rVector = [[], []]
+
+        # Get bottom of a range to negate function
+        def b(x):
+            return (x - sig(x) * x) / (1 - sig(x))
+
+        # Slightly modified sigmoid function
+        def sig(z):
+            return tf.nn.sigmoid(tf.constant(.000001) * z)
+
+        for i in range(len(vars[0])):
+            if i in restrictions.keys():
+                if type(restrictions[i]) in [list, tuple]:
+                    rVector[0].append(tf.cast(restrictions[i][0], tf.float32))
+                    rVector[1].append(tf.cast(restrictions[i][1], tf.float32))
+                else:
+                    rVector[0].append(tf.cast(b(restrictions[i]), tf.float32))
+                    rVector[1].append(tf.cast(restrictions[i], tf.float32))
+            else:
+                rVector[0].append(tf.cast(b(vars[0][i]), tf.float32))
+                rVector[1].append(tf.cast(vars[0][i], tf.float32))
+        return rVector
+
+    def _applyRestrictionVector(self, inputs, restrictVector):
+        # Slightly modified sigmoid function
+        def sig(z):
+            return tf.nn.sigmoid(tf.constant(.000001) * z)
+        # Restriction reshaping function
+        def f(x, b, t):
+            q = sig(x)
+            w = tf.mul(q, tf.cast(tf.sub(t, b), tf.float32))
+            return tf.add(w, b)
+
+        return f(inputs, restrictVector[0], restrictVector[1])

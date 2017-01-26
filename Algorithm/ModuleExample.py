@@ -19,22 +19,14 @@ def newSet(size, ins = 2):
     return (data, labels)
 
 # INIT AND TRAIN NETWORK
-n = Network([4, 1], activation = "none", shaping = "none")
-n.train(newSet(300, 4), epochs = 10001, learn_rate = .0001,
-        batch_size = 0, debug = False, debug_interval = 5000)
-
-# QUICK CHECK
-print "\n"
-p = newSet(1, 4)
-a = n.feed(p[0], evaluate = True)
-print p[1]
-print a
-print "Loss :: {0}\n".format(abs(p[1][0][0] - a[0][0]))
-
-print "Weights"
-print n.w
-print "Biases"
-print n.b
+n = Network([4, 1])
+# n.train(newSet(300, 4), epochs = 5000, learn_rate = .0001,
+#         batch_size = 0, debug = False, debug_interval = 5000)
+n.initWeights(mode="preset", preset = [[[1], [1], [1], [1]]])
+n.initBiases(mode="preset", preset = [[[0]]])
 
 # Input Backprop
-n.ibp([[20]], epochs = 50000, learn_rate = .0001, debug = True)
+n.ibp([[100]], epochs = -1,
+      learn_rate = .1, debug = True, debug_interval= -1,
+      restrictions = {0: (-51, 51), 1: (100, 120), 2: 100},
+      error_tolerance = .01, rangeGradientScalar = 1000000000.0)
