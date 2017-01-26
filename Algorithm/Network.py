@@ -19,7 +19,7 @@ class Network (object):
         - initValues    : initiate default weights and biases
         - intiWeights   : initiate weights with given paramaters
         - initBiases    : initiate biases with given paramaters
-        - clean         : clean an input and fix it if wrong format
+        - _clean         : _clean an input and fix it if wrong format
         - feed          : feed an input into the network
         - train         : train the network with given data
         - ibp           : perform the Input Backpropagation algorithm
@@ -206,7 +206,7 @@ class Network (object):
         # Save biases
         self.b = [i.eval(session = self._session) for i in self.b]
 
-    def clean(self, input_vector):
+    def _clean(self, input_vector):
         """Clean input for network functions"""
         ityp = type(input_vector)
         # All entries must be floats
@@ -232,7 +232,7 @@ class Network (object):
             else:
                 raise TypeError("Input must be a list, array, or tensor of ints, floats, lists, arrays, or tensors")
 
-        # Finally, clean returned input
+        # Finally, _clean returned input
         return input_vector
 
     def feed(self, input_vector, evaluate = True):
@@ -244,7 +244,7 @@ class Network (object):
             - evaluate (bool): evaluate output tensor. Yes or no?
         """
         # Clean input
-        self.clean(input_vector)
+        self._clean(input_vector)
 
         # Predicted output
         def calc(inp, n=0):
@@ -269,7 +269,7 @@ class Network (object):
                 return calc(calculated, n + 1)
 
         # Clean input_vector
-        input_vector = self.clean(input_vector)
+        input_vector = self._clean(input_vector)
 
         # Shape output
         if self.shaping == "softmax":
@@ -459,7 +459,7 @@ class Network (object):
 
     def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False,
             loss_function="absolute_distance", shaping="none", activation="none",
-            restrictions = {}, debug_interval = 10000):
+            restrictions = {}, debug_interval = 10000, error_tolerance = None):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -481,13 +481,17 @@ class Network (object):
                          - For constant value: restrictionX = value
                          - For range: restricionX = (lower, upper)
             debug_interval : number of epochs between each debug statement
+                            - Use a negative number to only print ending statement
+            error_tolerance: the largest acceptable error before auto-breaking
+                            (default is learn_rate)
         """
         # Clean inputs
         # TODO Clean data for training IBP
         # TODO Clean training parameters IBP
         epochs = int(epochs)
         learn_rate = float(learn_rate)
-        target = self.clean(target)
+        target = self._clean(target)
+        if error_tolerance == None: error_tolerance = learn_rate
 
         def applyRestrictions():
             for k in restrictions.keys():
@@ -508,23 +512,8 @@ class Network (object):
         optimal = [[tf.Variable(0.0) for i in range(self.layers[0])]]
         # Apply constant restrictions
         for k in restrictions.keys():
-            if type(restrictions[k]) == int:
+            if type(restrictions[k]) in [float, int]:
                 optimal[0][k] = tf.constant(float(restrictions[k]))
-
-        # Restriction vector
-        rVector = [[], []]
-        for i in range(self.layers[0]):
-            if i < len(restrictions):
-                if type(restrictions[i]) in [list, tuple]:
-                    rVector[0].append(restrictions[i][0])
-                    rVector[1].append(restrictions[i][1])
-                else:
-                    rVector[0].append(0)
-                    rVector[1].append(0)
-            else:
-                rVector[0].append(0)
-                rVector[1].append(0)
-        print rVector
 
         # <editor-fold desc="Temp">
         # Input Weights
@@ -536,19 +525,21 @@ class Network (object):
         # Output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
+            # Get restricion vectors
+            rv = self._getRestrictionVectors(restrictions, inp)
+            # Apply restriction vectors
+            x = self._applyRestrictionVector(inp, rv)
             # End recursion
             if n == len(self.layers) - 2:
                 # Minus 2 because final layer does no math (-1) and the lists start at zero (-1)
-                calculated = tf.matmul(inp, w[n], name="mul{0}".format(n)) + b[n]
+                calculated = tf.matmul(x, w[n], name="mul{0}".format(n)) + b[n]
                 # Apply activation if set
                 if self.activation == "sigmoid":
                     return tf.sigmoid(calculated)
                 else:
                     return calculated
             # Continue recursion
-            # Tensorflow control flow for restriction application
-
-            calculated = tf.matmul(inp, w[n], name="mul{0}".format(n)) + b[n]
+            calculated = tf.matmul(x, w[n], name="mul{0}".format(n)) + b[n]
             # Apply activation if set
             if self.activation == "sigmoid":
                 return calc(tf.sigmoid(calculated), n + 1)
@@ -581,7 +572,8 @@ class Network (object):
         for i in optimal[0]:
             if type(i) == tf.Variable:
                 vlist.append(i)
-        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss, var_list = vlist)
+        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate)\
+            .minimize(loss, var_list = vlist)
 
         # Absolute Error
         absoluteError = tf.abs((lbl - out))
@@ -596,7 +588,7 @@ class Network (object):
             time0 = time()
 
             # Debug printing
-            if counter % debug_interval == 0 and debug:
+            if counter % debug_interval == 0 and debug and debug_interval > 0:
                 # Combine optimal of constants and variables
                 op = []
                 for i in optimal[0]:
@@ -605,10 +597,15 @@ class Network (object):
                     else:
                         op.append(i.eval(session=self._session))
                 print "@ Epoch {0} :: {1}".format(counter, op)
+                # Get restricion vectors
+                rv = self._getRestrictionVectors(restrictions, optimal)
+                # Apply restriction vectors
+                q = self._applyRestrictionVector(optimal, rv).eval(session=self._session)
+                print "Evaluated :: {0}".format(q)
 
             # Break if error is 0 or within learning rate of zero
             # This is the only escape if epochs is set to -1
-            if absoluteError.eval(session = self._session) <= learn_rate: break
+            if absoluteError.eval(session = self._session) <= error_tolerance: break
 
             # Break if epochs limit reached
             if counter >= epochs and epochs != -1: break
@@ -617,28 +614,26 @@ class Network (object):
             self._session.run(train_step)
 
             # Debug printing for profiling
-            if counter % debug_interval == 0 and debug:
+            if counter % debug_interval == 0 and debug and debug_interval > 0:
                 print "Time for Epoch {0} :: {1}\n".format(counter, time() - time0)
 
             # Increment counter
             counter += 1
 
-        # Combine optimal of constants and variables
-        op = []
-        for i in optimal[0]:
-            if type(i) == tf.constant:
-                op.append(i)
-            else:
-                op.append(i.eval(session=self._session))
+        # Finalize restricted output
+        # Get restricion vectors
+        rv = self._getRestrictionVectors(restrictions, optimal)
+        # Apply restriction vectors
+        final = self._applyRestrictionVector(optimal, rv).eval(session = self._session)
 
         if debug:
-            print("OPTIMAL INPUT       :: {0}".format(op))
+            print("\nOPTIMAL INPUT       :: {0}".format(final))
             print("CALCULATED OUT      :: {0}".format(calc(optimal).eval(session = self._session)))
             print("TARGET OUT          :: {0}".format(target))
             print("ERROR               :: {0}".format(absoluteError.eval(session = self._session)))
             print("EPOCHS              :: {0}".format(counter))
         # </editor-fold>
-        return op
+        return final
 
     def _getRestrictionVectors(self, restrictions, vars):
         rVector = [[], []]
@@ -654,14 +649,24 @@ class Network (object):
         for i in range(len(vars[0])):
             if i in restrictions.keys():
                 if type(restrictions[i]) in [list, tuple]:
-                    rVector[0].append(tf.constant(float(restrictions[i][0])))
-                    rVector[1].append(tf.constant(float(restrictions[i][1])))
+                    rVector[0].append(tf.cast(restrictions[i][0], tf.float32))
+                    rVector[1].append(tf.cast(restrictions[i][1], tf.float32))
                 else:
-                    rVector[0].append(tf.constant(float(b(restrictions[i])
-                                                        .eval(session = self._session))))
-                    rVector[1].append(tf.constant(float(restrictions[i])))
+                    rVector[0].append(tf.cast(b(restrictions[i]), tf.float32))
+                    rVector[1].append(tf.cast(restrictions[i], tf.float32))
             else:
-                rVector[0].append(tf.constant(float(b(vars[0][i])
-                                                    .eval(session = self._session))))
-                rVector[1].append(tf.constant(float(vars[0][i])))
+                rVector[0].append(tf.cast(b(vars[0][i]), tf.float32))
+                rVector[1].append(tf.cast(vars[0][i], tf.float32))
         return rVector
+
+    def _applyRestrictionVector(self, inputs, restrictVector):
+        # Slightly modified sigmoid function
+        def sig(z):
+            return tf.nn.sigmoid(tf.constant(.000001) * z)
+        # Restriction reshaping function
+        def f(x, b, t):
+            q = sig(x)
+            w = tf.mul(q, tf.cast(tf.sub(t, b), tf.float32))
+            return tf.add(w, b)
+
+        return f(inputs, restrictVector[0], restrictVector[1])
