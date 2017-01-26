@@ -19,7 +19,7 @@ def newSet(size, ins = 2):
     return (data, labels)
 
 # INIT AND TRAIN NETWORK
-n = Network([2, 1])
+n = Network([4, 1])
 # n.train(newSet(300, 4), epochs = 5000, learn_rate = .0001,
 #         batch_size = 0, debug = False, debug_interval = 5000)
 n.initWeights(mode="ones")
@@ -27,6 +27,6 @@ n.initBiases(mode="zeros")
 
 # Input Backprop
 n.ibp([[100]], epochs = -1,
-      learn_rate = 10.0, debug = True, debug_interval= 1,
-      restrictions = {0: (0, 51), 1: (0, 51)},
-      error_tolerance = 1)
+      learn_rate = .1, debug = True, debug_interval= -1,
+      restrictions = {0: (-51, 51), 1: (100, 120), 2: 100},
+      error_tolerance = .1, rangeGradientScalar = 1000000000.0)

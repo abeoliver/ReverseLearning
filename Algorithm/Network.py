@@ -126,8 +126,15 @@ class Network (object):
 
         if preset != []:
             # Preset must be a list, array, tuple, or tensor
-            # TODO Clean preset input
-            self.w = preset
+            preset = self._clean(preset)
+            w = []
+            for i in preset:
+                q = []
+                for j in i:
+                    q.append(np.float32(j))
+                w.append(np.array(q))
+            self.w = w
+            return None
         elif mode in ["preset", "presets", "pre", "p"]:
             # If Mode is set to preset but no preset is given, raise error
             # Implied that preset wasn't given because the first if didn't trigger
@@ -459,7 +466,8 @@ class Network (object):
 
     def ibp(self, target, epochs = 1000, learn_rate = .01, debug = False,
             loss_function="absolute_distance", shaping="none", activation="none",
-            restrictions = {}, debug_interval = 10000, error_tolerance = None):
+            restrictions = {}, debug_interval = -1, error_tolerance = None,
+            rangeGradientScalar = 100000000.0):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -482,8 +490,9 @@ class Network (object):
                          - For range: restricionX = (lower, upper)
             debug_interval : number of epochs between each debug statement
                             - Use a negative number to only print ending statement
-            error_tolerance: the largest acceptable error before auto-breaking
+            error_tolerance : the largest acceptable error before auto-breaking
                             (default is learn_rate)
+            rangeGradientScalar : scalar for the gradients of the range-restricted vars
         """
         # Clean inputs
         # TODO Clean data for training IBP
@@ -493,18 +502,11 @@ class Network (object):
         target = self._clean(target)
         if error_tolerance == None: error_tolerance = learn_rate
 
-        def applyRestrictions():
-            for k in restrictions.keys():
-                if type(restrictions[k]) in [list, tuple]:
-                    s = tf.nn.sigmoid(optimal[0][k])
-                    a = tf.mul(s, tf.cast(tf.sub(restrictions[k][1], restrictions[k][0]), tf.float32))
-                    o = tf.add(a, restrictions[k][0])
-                    self._session.run(optimal[0][k].assign(o))
-
-        def rangeRestrict(inp, lower, upper):
-            s = tf.nn.sigmoid(inp)
-            a = tf.mul(s, tf.cast(tf.sub(upper, lower), tf.float32))
-            return tf.add(a, lower)
+        # Range restriction list
+        rangeRestricted = []
+        for i in restrictions.keys():
+            if type(restrictions[i]) in [list, tuple]:
+                rangeRestricted.append(i)
 
         # Define paramaters
         # Input
@@ -572,8 +574,18 @@ class Network (object):
         for i in optimal[0]:
             if type(i) == tf.Variable:
                 vlist.append(i)
-        train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate)\
-            .minimize(loss, var_list = vlist)
+        trainer = tf.train.ProximalGradientDescentOptimizer(learn_rate)
+        gradients = trainer.compute_gradients(loss, var_list = vlist)
+
+        # Increase gradients (only if range restricted
+        def raiseGrad(grad, var):
+            return (tf.mul(grad, rangeGradientScalar), var)
+        newGrads = [raiseGrad(gradients[g][0], gradients[g][1]) if g in rangeRestricted
+                    else (gradients[g][0], gradients[g][1])
+                    for g in range(len(gradients))]
+
+        # Gradient application
+        applyNewGrads = trainer.apply_gradients(newGrads)
 
         # Absolute Error
         absoluteError = tf.abs((lbl - out))
@@ -611,7 +623,7 @@ class Network (object):
             if counter >= epochs and epochs != -1: break
 
             # Apply training step to find optimal
-            self._session.run(train_step)
+            self._session.run(applyNewGrads)
 
             # Debug printing for profiling
             if counter % debug_interval == 0 and debug and debug_interval > 0:
