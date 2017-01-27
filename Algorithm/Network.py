@@ -488,6 +488,8 @@ class Network (object):
 
         Parameters:
             target          : target value
+                            - "max" for maximum value
+                            - "min" for minimum value
             epochs          : number of epochs to run (DEFAULT 1000)
                             - (-1) runs until error is below learning rate
             loss_function   : loss function to use (DEFAULT absolute distance)
@@ -513,7 +515,10 @@ class Network (object):
         # TODO Clean training parameters IBP
         epochs = int(epochs)
         learn_rate = float(learn_rate)
-        target = self._clean(target)
+        if type(target) == str:
+            target = target.lower()
+        else:
+            target = self._clean(target)
         if error_tolerance == None: error_tolerance = learn_rate
 
         # Range restriction list
@@ -573,19 +578,36 @@ class Network (object):
             out = calc(optimal)
 
         # Label
-        if self.activation == "sigmoid":
-            lbl = tf.sigmoid(tf.constant(target))
-        else:
-            lbl = tf.constant(target)
+        lbl = 0
+        if target not in ["max", "min"]:
+            if self.activation == "sigmoid":
+                lbl = tf.sigmoid(tf.constant(target))
+            else:
+                lbl = tf.constant(target)
 
         # Training with quadratic cost and gradient descent with learning rate .01
         # Loss function TODO Add more loss functions IBP
         if loss_function == "cross_entropy":
-            loss = -lbl * tf.log(out)
-        elif loss_function == "absolute_distance":
-            loss = tf.abs(lbl - out)
+            if target == "max":
+                raise ValueError("Target 'max' and 'cross_entropy' loss are not compatible")
+            elif target == "min":
+                raise ValueError("Target 'min' and 'cross_entropy' loss are not compatible")
+            else:
+                loss = -lbl * tf.log(out)
+        elif loss_function == "quadratic":
+            if target == "max":
+                raise ValueError("Target 'max' and 'quadratic' loss are not compatible")
+            elif target == "min":
+                raise ValueError("Target 'min' and 'quadratic' loss are not compatible")
+            else:
+                loss = tf.pow(lbl - out, 2)
         else:
-            loss = tf.pow(lbl - out, 2)
+            if target == "max":
+                loss = tf.mul(-1.0, out)
+            elif target == "min":
+                loss = out
+            else:
+                loss = tf.abs(lbl - out)
 
         # Optimizer
         vlist = []
@@ -606,7 +628,10 @@ class Network (object):
         applyNewGrads = trainer.apply_gradients(newGrads)
 
         # Absolute Error
-        absoluteError = tf.abs((lbl - out))
+        if target in ["max", "min"]:
+            absoluteError = tf.constant(0)
+        else:
+            absoluteError = tf.abs((lbl - out))
 
         # Initialize
         self._session.run(tf.initialize_all_variables())
@@ -634,8 +659,11 @@ class Network (object):
                 print "Evaluated :: {0}".format(q)
 
             # Break if error is 0 or within learning rate of zero
-            # This is the only escape if epochs is set to -1
-            if absoluteError.eval(session = self._session) <= error_tolerance: break
+            # This is the only escape if epochs is set to -1 or
+            # target is max or min
+            if absoluteError.eval(session = self._session) <= error_tolerance \
+                    and target not in ["max", "min"]:
+                break
 
             # Break if epochs limit reached
             if counter >= epochs and epochs != -1: break
