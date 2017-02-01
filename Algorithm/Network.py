@@ -264,9 +264,6 @@ class Network (object):
             - input_vector (Tensor, Nd-array,  list) : input_vector to feed through
             - evaluate (bool): evaluate output tensor. Yes or no?
         """
-        # Clean input
-        self._clean(input_vector)
-
         # Predicted output
         def calc(inp, n=0):
             """Recursive function for feeding through layers"""
@@ -290,7 +287,7 @@ class Network (object):
                 return calc(calculated, n + 1)
 
         # Clean input_vector
-        input_vector = self._clean(input_vector)
+        # input_vector = self._clean(input_vector)
 
         # Shape output
         if self.shaping == "softmax":
@@ -618,7 +615,7 @@ class Network (object):
         trainer = tf.train.ProximalGradientDescentOptimizer(learn_rate)
         gradients = trainer.compute_gradients(loss, var_list = vlist)
 
-        # Increase gradients (only if range restricted
+        # Increase gradients (only if range restricted)
         def raiseGrad(grad, var):
             return (tf.mul(grad, rangeGradientScalar), var)
         newGrads = [raiseGrad(gradients[g][0], gradients[g][1]) if g in rangeRestricted
@@ -637,7 +634,7 @@ class Network (object):
         # Initialize
         self._session.run(tf.initialize_all_variables())
 
-        # Train to find three inputs
+        # Train to find optimal
         counter = 0
         while True:
             # Profiling
