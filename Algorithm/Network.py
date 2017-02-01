@@ -443,6 +443,7 @@ class Network (object):
                 # Print status bar (debug)
                 if not debug and not silence:
                     if i % STATUS_INTERVAL == 0: print" * ",
+
             # Debug
             if not silence and not debug:
                 print("\nTRAINING COMPLETE")
