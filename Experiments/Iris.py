@@ -14,7 +14,7 @@ def getDataset():
     # Prepare Data
     data = {"sepal length":[], "sepal width": [], "petal length": [],
             "petal width": [], "species": []}
-    with open("C:/Users/abeol/Git/ReverseLearning/DataSets/iris.tab") as tsv:
+    with open("C:/Users/abeol/Git/ReverseLearning/DataSets/Iris.tab") as tsv:
         reader = CSV(tsv, dialect="excel-tab")
         for line in reader:
             if reader.line_num not in [1, 2, 3]:

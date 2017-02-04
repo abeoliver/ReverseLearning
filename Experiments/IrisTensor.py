@@ -12,10 +12,10 @@ def getDataset():
     # Prepare Data
     data = {"sepal length":[], "sepal width": [], "petal length": [],
             "petal width": [], "species": []}
-    with open("iris.tab") as tsv:
+    with open("Iris.tab") as tsv:
         reader = CSV(tsv, dialect="excel-tab")
         for line in reader:
-            if reader.line_num not in [1, 2, 3]:
+            if reader.line_num not in [1, 2, 3] and line[4][:3] != "MAX":
                 data["sepal length"].append(line[0])
                 data["sepal width"].append(line[1])
                 data["petal length"].append(line[2])
@@ -67,16 +67,17 @@ def splitData(data, trainsize):
     return (train, test)
 
 full = getDataset()
-train, test = splitData(full, 140)
+# train, test = splitData(full, 140)
 
-def getAccuracy(classifier, testset):
+def getAccuracy(classifier, testset, err):
     c = classifier
     runner = 0
     for i in range(len(testset[0])):
         y_ = c.feed([testset[0][i]])[0]
         compl = 0
         for j in range(len(y_)):
-            if y_[j] == testset[1][i][j]: compl += 1
+            if y_[j] >= (testset[1][i][j] - err) and y_[j] <= (testset[1][i][j] + err) :
+                compl += 1
         if compl == len(y_): runner += 1
     return float(runner) / len(testset[0])
 
@@ -91,14 +92,29 @@ n.initWeights(mode="preset", preset=[[[-2.96867418, -2.04050994],
 n.initBiases(mode="preset", preset=[[[-6.04968405, -2.69198585]],
                                     [[0.4100841, 2.19560456, -3.45070601]]])
 
-optimal = n.ibp([1.0, 0.0, 0.0], epochs = -1, debug = False, learn_rate = .1,
-                error_tolerance = .01, rangeGradientScalar = 1e10,
-                restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
+# print ("ACCURACY (.3) :: {0}".format(getAccuracy(n, full, .3)))
+# print ("ACCURACY (.2) :: {0}".format(getAccuracy(n, full, .2)))
+# print ("ACCURACY (.1) :: {0}".format(getAccuracy(n, full, .1)))
+
+# optimal_setosa = n.ibp([1.0, 0.0, 0.0], epochs = -1, debug = True, learn_rate = .1,
+#                         error_tolerance = .1, rangeGradientScalar = 1e10,
+#                         restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
+
+# optimal_versicolor = n.ibp([0.0, 1.0, 0.0], epochs = -1, debug = True, learn_rate = .1,
+#                             error_tolerance = .1, rangeGradientScalar = 1e10,
+#                             restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
+
+optimal_virginica = n.ibp([0.0, 0.0, 1.0], epochs = -1, debug = True, learn_rate = .1,
+                            error_tolerance = .1, rangeGradientScalar = 1e10, debug_interval = 100,
+                            restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
 
 # Check optimal
-print "OPTIMAL INPUTS :: {0}".format(n.eval(optimal))   # [[ 6.42741394  3.89656925  1.88798046  1.17135382 ]]
-print "OPTIMAL OUTPUT :: {0}".format(n.feed(optimal))   # [[ 0.99500012  0.00499985  0.                     ]]
-print "TARGET OUTPUT  :: {0}".format([1.0, 0.0, 0.0])   # [[1.0          0.          0.                     ]]
+# print "OPTIMAL SETOSA     :: {0}".format(n.eval(optimal_setosa))        # [ 6.427  3.900  1.888  1.171 ]
+# print "OPTIMAL SETOSA     :: {0}".format(n.feed(optimal_setosa))
+# print "OPTIMAL VERSICOLOR :: {0}".format(n.eval(optimal_versicolor))    # [ 6.25  3.5   3.75  1.5 ]
+# print "OPTIMAL VERSICOLOR :: {0}".format(n.feed(optimal_versicolor))
+print "TARGET VIRGINICA   :: {0}".format(n.eval(optimal_virginica))
+print "TARGET VIRGINICA   :: {0}".format(n.feed(optimal_virginica))
 
 # ------------------ TRAIN NETWORK ------------------
 # NOTE: The descovered weights and biases were manually entered
