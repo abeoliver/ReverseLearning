@@ -104,9 +104,9 @@ n.initBiases(mode="preset", preset=[[[-6.04968405, -2.69198585]],
 #                             error_tolerance = .1, rangeGradientScalar = 1e10,
 #                             restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
 
-optimal_virginica = n.ibp([0.0, 0.0, 1.0], epochs = -1, debug = True, learn_rate = .1,
-                            error_tolerance = .1, rangeGradientScalar = 1e10, debug_interval = 100,
-                            restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
+optimal_virginica = n.ibp([0.0, 0.0, 1.0], epochs = -1, debug = True, learn_rate = .1, error_tolerance = .1,
+                          rangeGradientScalar = 1e12, debug_interval = 100, loss_function = "absolute_distance",
+                          restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
 
 # Check optimal
 # print "OPTIMAL SETOSA     :: {0}".format(n.eval(optimal_setosa))        # [ 6.427  3.900  1.888  1.171 ]
