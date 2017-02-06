@@ -268,7 +268,7 @@ class Network (object):
         self._clean(input_vector)
 
         # Predicted output
-        def calc(inp, n=0):
+        def _calc(inp, n=0):
             """Recursive function for feeding through layers"""
             # End recursion
             if n == len(self.layers) - 2:
@@ -283,22 +283,27 @@ class Network (object):
             calculated = tf.matmul(inp, self.w[n], name="mul{0}".format(n)) + self.b[n]
             # Apply activation if set
             if self.activation == "sigmoid":
-                return calc(tf.sigmoid(calculated), n + 1)
+                return _calc(tf.sigmoid(calculated), n + 1)
             elif self.activation == "custom":
-                return calc(self.customActivation(calculated))
+                return _calc(self.customActivation(calculated))
             else:
-                return calc(calculated, n + 1)
+                return _calc(calculated, n + 1)
 
         # Clean input_vector
         input_vector = self._clean(input_vector)
 
         # Shape output
-        if self.shaping == "softmax":
-            y = tf.nn.softmax(calc(input_vector))
-        elif self.shaping == "custom":
-            y = self.customShaping(calc(input_vector))
-        else:
-            y = calc(input_vector)
+        def calc(inp):
+            if self.shaping == "softmax":
+                y = tf.nn.softmax(_calc(inp))
+            elif self.shaping == "custom":
+                y = self.customShaping(_calc(inp))
+            else:
+                y = _calc(inp)
+            return y
+
+        # Calculate
+        y = calc(input_vector)
 
         # Begin and return recursively calculated output
         if evaluate:
@@ -349,7 +354,7 @@ class Network (object):
         self._session.run(tf.initialize_all_variables())
         
         # Predicted output
-        def calc(inp, n=0):
+        def _calc(inp, n=0):
             """Recursive function for feeding through layers"""
             # End recursion
             if n == len(self.layers) - 2:
@@ -364,19 +369,24 @@ class Network (object):
             calculated = tf.matmul(inp, w[n], name = "mul{0}".format(n)) + b[n]
             # Apply activation if set
             if self.activation == "sigmoid":
-                return calc(tf.sigmoid(calculated), n + 1)
+                return _calc(tf.sigmoid(calculated), n + 1)
             elif self.activation == "custom":
-                return calc(self.customActivation(calculated))
+                return _calc(self.customActivation(calculated))
             else:
-                return calc(calculated, n + 1)
+                return _calc(calculated, n + 1)
 
-        # Shape output
-        if self.shaping == "softmax":
-            y = tf.nn.softmax(calc(x))
-        elif self.shaping == "custom":
-            y = self.customShaping(calc(x))
-        else:
-            y = calc(x)
+        def calc(inp):
+            # Shape output
+            if self.shaping == "softmax":
+                y = tf.nn.softmax(_calc(inp))
+            elif self.shaping == "custom":
+                y = self.customShaping(_calc(inp))
+            else:
+                y = _calc(inp)
+            return y
+
+        # Get calculated
+        y = calc(x)
         
         # Labels
         if self.activation == "sigmoid":
@@ -514,6 +524,7 @@ class Network (object):
         # Clean inputs
         # TODO Clean data for training IBP
         # TODO Clean training parameters IBP
+        breakReason = None
         epochs = int(epochs)
         learn_rate = float(learn_rate)
         if type(target) == str:
@@ -528,14 +539,18 @@ class Network (object):
             if type(restrictions[i]) in [list, tuple]:
                 rangeRestricted.append(i)
 
+
         # Define paramaters
         # Input
         # Start with all 0-variables
-        optimal = [[tf.Variable(0.0) for i in range(self.layers[0])]]
+        optimal = [[tf.Variable(-10000.0) for i in range(self.layers[0])]]
         # Apply constant restrictions
         for k in restrictions.keys():
             if type(restrictions[k]) in [float, int]:
                 optimal[0][k] = tf.constant(float(restrictions[k]))
+
+        # For checking if all gradients are zero
+        zeroGrad = [tf.constant(0.0) for v in optimal[0]]
 
         # <editor-fold desc="Temp">
         # Input Weights
@@ -545,7 +560,7 @@ class Network (object):
         b = [tf.constant(i) for i in self.b]
 
         # Output
-        def calc(inp, n=0):
+        def _calc(inp, n=0):
             """Recursive function for feeding through layers"""
             # Apply restrictions if on the first loop
             if n == 0:
@@ -568,15 +583,24 @@ class Network (object):
             calculated = tf.matmul(x, w[n], name="mul{0}".format(n)) + b[n]
             # Apply activation if set
             if self.activation == "sigmoid":
-                return calc(tf.sigmoid(calculated), n + 1)
+                return _calc(tf.sigmoid(calculated), n + 1)
+            elif self.activation == "custom":
+                return _calc(self.customActivation(calculated))
             else:
-                return calc(calculated, n + 1)
+                return _calc(calculated, n + 1)
 
         # Shape output
-        if self.shaping == "softmax":
-            out = tf.nn.softmax(calc(optimal))
-        else:
-            out = calc(optimal)
+        def calc(inp):
+            if self.shaping == "softmax":
+                y = tf.nn.softmax(_calc(inp))
+            elif self.shaping == "custom":
+                y = self.customShaping(_calc(inp))
+            else:
+                y = _calc(inp)
+            return y
+
+        # Calculate
+        out = calc(optimal)
 
         # Label
         lbl = 0
@@ -652,29 +676,52 @@ class Network (object):
                         op.append(i)
                     else:
                         op.append(i.eval(session=self._session))
-                print "@ Epoch {0} :: {1}".format(counter, op)
+                print "@ Epoch {0}".format(counter)
+                print "Value        :: {0}".format(op)
                 # Get restricion vectors
                 rv = self._getRestrictionVectors(restrictions, optimal)
                 # Apply restriction vectors
                 q = self._applyRestrictionVector(optimal, rv).eval(session=self._session)
-                print "Evaluated :: {0}".format(q)
+                print "Restricted   :: {0}".format(q)
+                # Evaluated
+                print "Evaluated    :: {0}".format(self.feed(q))
 
-            # Break if error is 0 or within learning rate of zero
-            # This is the only escape if epochs is set to -1 or
+            # Break if error is 0WW or within learning rate of zero
+            # This is oen of two escapes if epochs is set to -1 or
             # target is max or min
-            if absoluteError.eval(session = self._session) <= error_tolerance \
+            absoluteErrorEvaluated = absoluteError.eval(session = self._session)[0]
+            if sum(absoluteErrorEvaluated) <= error_tolerance \
                     and target not in ["max", "min"]:
+                breakReason = "Beat Error"
+                break
+            # Debug
+            if counter % debug_interval == 0 and debug and debug_interval > 0:
+                print "Error        :: {0}".format(absoluteErrorEvaluated)
+                print "Total Error  :: {0}".format(sum(absoluteErrorEvaluated))
+
+            # Break if gradients are all zero
+            # This is oen of two escapes if epochs is set to -1 or
+            # target is max or min
+            gs = [p[0] for p in newGrads]
+            gs0 = self._session.run(tf.equal(gs, zeroGrad))
+            zeros = 0
+            for g in gs0:
+                if g: zeros += 1
+            if zeros == len(gs):
+                breakReason = "Zero Gradients"
                 break
 
             # Break if epochs limit reached
-            if counter >= epochs and epochs != -1: break
+            if counter >= epochs and epochs != -1:
+                breakReason = "Epoch Limit Reached"
+                break
 
             # Apply training step to find optimal
             self._session.run(applyNewGrads)
 
             # Debug printing for profiling
             if counter % debug_interval == 0 and debug and debug_interval > 0:
-                print "Time for Epoch {0} :: {1}\n".format(counter, time() - time0)
+                print "Time         :: {0}\n".format(time() - time0)
 
             # Increment counter
             counter += 1
@@ -686,11 +733,11 @@ class Network (object):
         final = self._applyRestrictionVector(optimal, rv).eval(session = self._session)
 
         if debug:
-            print("\nOPTIMAL INPUT       :: {0}".format(final))
-            print("CALCULATED OUT      :: {0}".format(calc(optimal).eval(session = self._session)))
-            print("TARGET OUT          :: {0}".format(target))
-            print("ERROR               :: {0}".format(absoluteError.eval(session = self._session)))
-            print("EPOCHS              :: {0}".format(counter))
+            print("\nOPTIMAL INPUT       :: {0}".format(final[0]))
+            print("CALCULATED OUT      :: {0}".format(calc(optimal).eval(session = self._session)[0]))
+            print("TARGET OUT          :: {0}".format(lbl.eval(session = self._session)[0]))
+            print("ERROR               :: {0}".format(absoluteError.eval(session = self._session)[0]))
+            print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
         # </editor-fold>
         return final
 
