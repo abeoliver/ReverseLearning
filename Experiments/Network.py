@@ -676,27 +676,38 @@ class Network (object):
                         op.append(i)
                     else:
                         op.append(i.eval(session=self._session))
-                print "@ Epoch {0} :: {1}".format(counter, op)
+                print "@ Epoch {0}".format(counter)
+                print "Value        :: {0}".format(op)
                 # Get restricion vectors
                 rv = self._getRestrictionVectors(restrictions, optimal)
                 # Apply restriction vectors
                 q = self._applyRestrictionVector(optimal, rv).eval(session=self._session)
-                print "Evaluated :: {0}".format(q)
-                print newGrads
+                print "Restricted   :: {0}".format(q)
+                # Evaluated
+                print "Evaluated    :: {0}".format(self.feed(q))
 
-            # Break if error is 0 or within learning rate of zero
+            # Break if error is 0WW or within learning rate of zero
             # This is oen of two escapes if epochs is set to -1 or
             # target is max or min
-            if sum(absoluteError.eval(session = self._session)[0]) <= error_tolerance \
+            absoluteErrorEvaluated = absoluteError.eval(session = self._session)[0]
+            if sum(absoluteErrorEvaluated) <= error_tolerance \
                     and target not in ["max", "min"]:
                 breakReason = "Beat Error"
                 break
+            # Debug
+            if counter % debug_interval == 0 and debug and debug_interval > 0:
+                print "Error        :: {0}".format(absoluteErrorEvaluated)
+                print "Total Error  :: {0}".format(sum(absoluteErrorEvaluated))
 
             # Break if gradients are all zero
             # This is oen of two escapes if epochs is set to -1 or
             # target is max or min
             gs = [p[0] for p in newGrads]
-            if self._session.run(tf.equal(gs, zeroGrad)):
+            gs0 = self._session.run(tf.equal(gs, zeroGrad))
+            zeros = 0
+            for g in gs0:
+                if g: zeros += 1
+            if zeros == len(gs):
                 breakReason = "Zero Gradients"
                 break
 
@@ -710,7 +721,7 @@ class Network (object):
 
             # Debug printing for profiling
             if counter % debug_interval == 0 and debug and debug_interval > 0:
-                print "Time for Epoch {0} :: {1}\n".format(counter, time() - time0)
+                print "Time         :: {0}\n".format(time() - time0)
 
             # Increment counter
             counter += 1
