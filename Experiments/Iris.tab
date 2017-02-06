@@ -153,3 +153,6 @@ c	c	c	c	d
 5.9	3.0	5.1	1.8	Iris-virginica
 6.4	3.9	1.9	1.2	MAX-setosa
 6.3	3.5	3.8	1.5	MAX-versicolor
+5.00	3.42	1.46	0.24	AVG-setosa
+5.94	2.77	4.26	1.33	AVG-versicolor
+6.59	2.97	5.55	2.03	AVG-virginica

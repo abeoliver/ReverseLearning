@@ -25,17 +25,18 @@ def getDataset():
     xs = []
     ys = []
     for i in range(len(data["species"])):
-        # Inputs
-        t = [float(data["sepal length"][i]), float(data["sepal width"][i]), float(data["petal length"][i]),
-             float(data["petal width"][i])]
-        xs.append(t)
-        # Label
-        if data["species"][i] == "Iris-setosa":
-            ys.append([1.0, 0.0, 0.0])
-        elif data["species"][i] == "Iris-versicolor":
-            ys.append([0.0, 1.0, 0.0])
-        elif data["species"][i] == "Iris-virginica":
-            ys.append([0.0, 0.0, 1.0])
+        if data["species"][i] in ["Iris-setosa", "Iris-versicolor", "Iris-virginica"]:
+            # Inputs
+            t = [float(data["sepal length"][i]), float(data["sepal width"][i]), float(data["petal length"][i]),
+                 float(data["petal width"][i])]
+            xs.append(t)
+            # Label
+            if data["species"][i] == "Iris-setosa":
+                ys.append([1.0, 0.0, 0.0])
+            elif data["species"][i] == "Iris-versicolor":
+                ys.append([0.0, 1.0, 0.0])
+            elif data["species"][i] == "Iris-virginica":
+                ys.append([0.0, 0.0, 1.0])
     # Final set
     trainingData = [xs, ys]
     return trainingData
@@ -81,6 +82,19 @@ def getAccuracy(classifier, testset, err):
         if compl == len(y_): runner += 1
     return float(runner) / len(testset[0])
 
+# Get average feature sets
+def getAverage(className, dataset):
+    featureSets = [0.0 for q in dataset[0][0]]
+    count = 0
+    for i in range(len(dataset[1])):
+        if dataset[1][i] == className:
+            count += 1
+            for f in range(len(dataset[0][i])):
+                featureSets[f] += dataset[0][i][f]
+    if count == 0:
+        raise Exception("There are no items of class {0}".format(className))
+    return [fs / count for fs in featureSets]
+
 # ------------ USE IOA ON TRAINED NETWORK -----------
 n = Network([4, 2, 3], shaping="softmax")
 n.initWeights(mode="preset", preset=[[[-2.96867418, -2.04050994],
@@ -92,27 +106,39 @@ n.initWeights(mode="preset", preset=[[[-2.96867418, -2.04050994],
 n.initBiases(mode="preset", preset=[[[-6.04968405, -2.69198585]],
                                     [[0.4100841, 2.19560456, -3.45070601]]])
 
+# avg_setosa = getAverage([1.0, 0.0, 0.0], full)
+# avg_versicolor = getAverage([0.0, 1.0, 0.0], full)
+# avg_virginica = getAverage([0.0, 0.0, 1.0], full)
+# print "AVERAGE SETOSA {0}".format(avg_setosa)               # [5.006, 3.418, 1.464, 0.244]
+# print n.feed(avg_setosa)
+# print "AVERAGE VERSICOLOR {0}".format(avg_versicolor)       # [5.936, 2.770, 4.260, 1.326]
+# print n.feed(avg_versicolor)
+# print "AVERAGE VIRGINICA {0}".format(avg_virginica)         # [6.588, 2.974, 5.552, 2.026]
+# print n.feed(avg_virginica)
+# print ""
+#
 # print ("ACCURACY (.3) :: {0}".format(getAccuracy(n, full, .3)))
 # print ("ACCURACY (.2) :: {0}".format(getAccuracy(n, full, .2)))
 # print ("ACCURACY (.1) :: {0}".format(getAccuracy(n, full, .1)))
+# print ""
 
-# optimal_setosa = n.ibp([1.0, 0.0, 0.0], epochs = -1, debug = True, learn_rate = .1,
-#                         error_tolerance = .1, rangeGradientScalar = 1e10,
-#                         restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
+optimal_setosa = n.ibp([1.0, 0.0, 0.0], epochs = -1, debug = True, learn_rate = .1,
+                        error_tolerance = .1, rangeGradientScalar = 1e10, debug_interval = 100,
+                        restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
 
-# optimal_versicolor = n.ibp([0.0, 1.0, 0.0], epochs = -1, debug = True, learn_rate = .1,
-#                             error_tolerance = .1, rangeGradientScalar = 1e10,
-#                             restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
+optimal_versicolor = n.ibp([0.0, 1.0, 0.0], epochs = -1, debug = True, learn_rate = .1,
+                            error_tolerance = .1, rangeGradientScalar = 1e10, debug_interval = 100,
+                            restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
 
 optimal_virginica = n.ibp([0.0, 0.0, 1.0], epochs = -1, debug = True, learn_rate = .1, error_tolerance = .1,
                           rangeGradientScalar = 1e12, debug_interval = 100, loss_function = "absolute_distance",
                           restrictions = {0: (4.5, 8.0), 1: (2.0, 5.0), 2: (1.0, 6.5), 3: (0.0, 3.0)})
 
 # Check optimal
-# print "OPTIMAL SETOSA     :: {0}".format(n.eval(optimal_setosa))        # [ 6.427  3.900  1.888  1.171 ]
-# print "OPTIMAL SETOSA     :: {0}".format(n.feed(optimal_setosa))
-# print "OPTIMAL VERSICOLOR :: {0}".format(n.eval(optimal_versicolor))    # [ 6.25  3.5   3.75  1.5 ]
-# print "OPTIMAL VERSICOLOR :: {0}".format(n.feed(optimal_versicolor))
+print "OPTIMAL SETOSA     :: {0}".format(n.eval(optimal_setosa))        # [ 6.427  3.900  1.888  1.171 ]
+print "OPTIMAL SETOSA     :: {0}".format(n.feed(optimal_setosa))
+print "OPTIMAL VERSICOLOR :: {0}".format(n.eval(optimal_versicolor))    # [ 6.25  3.5   3.75  1.5 ]
+print "OPTIMAL VERSICOLOR :: {0}".format(n.feed(optimal_versicolor))
 print "TARGET VIRGINICA   :: {0}".format(n.eval(optimal_virginica))
 print "TARGET VIRGINICA   :: {0}".format(n.feed(optimal_virginica))
 
