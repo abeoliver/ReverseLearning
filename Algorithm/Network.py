@@ -524,6 +524,7 @@ class Network (object):
         # Clean inputs
         # TODO Clean data for training IBP
         # TODO Clean training parameters IBP
+        breakReason = None
         epochs = int(epochs)
         learn_rate = float(learn_rate)
         if type(target) == str:
@@ -538,14 +539,18 @@ class Network (object):
             if type(restrictions[i]) in [list, tuple]:
                 rangeRestricted.append(i)
 
+
         # Define paramaters
         # Input
         # Start with all 0-variables
-        optimal = [[tf.Variable(0.0) for i in range(self.layers[0])]]
+        optimal = [[tf.Variable(-10000.0) for i in range(self.layers[0])]]
         # Apply constant restrictions
         for k in restrictions.keys():
             if type(restrictions[k]) in [float, int]:
                 optimal[0][k] = tf.constant(float(restrictions[k]))
+
+        # For checking if all gradients are zero
+        zeroGrad = [tf.constant(0.0) for v in optimal[0]]
 
         # <editor-fold desc="Temp">
         # Input Weights
@@ -671,29 +676,52 @@ class Network (object):
                         op.append(i)
                     else:
                         op.append(i.eval(session=self._session))
-                print "@ Epoch {0} :: {1}".format(counter, op)
+                print "@ Epoch {0}".format(counter)
+                print "Value        :: {0}".format(op)
                 # Get restricion vectors
                 rv = self._getRestrictionVectors(restrictions, optimal)
                 # Apply restriction vectors
                 q = self._applyRestrictionVector(optimal, rv).eval(session=self._session)
-                print "Evaluated :: {0}".format(q)
+                print "Restricted   :: {0}".format(q)
+                # Evaluated
+                print "Evaluated    :: {0}".format(self.feed(q))
 
-            # Break if error is 0 or within learning rate of zero
-            # This is the only escape if epochs is set to -1 or
+            # Break if error is 0WW or within learning rate of zero
+            # This is oen of two escapes if epochs is set to -1 or
             # target is max or min
-            if sum(absoluteError.eval(session = self._session)[0]) <= error_tolerance \
+            absoluteErrorEvaluated = absoluteError.eval(session = self._session)[0]
+            if sum(absoluteErrorEvaluated) <= error_tolerance \
                     and target not in ["max", "min"]:
+                breakReason = "Beat Error"
+                break
+            # Debug
+            if counter % debug_interval == 0 and debug and debug_interval > 0:
+                print "Error        :: {0}".format(absoluteErrorEvaluated)
+                print "Total Error  :: {0}".format(sum(absoluteErrorEvaluated))
+
+            # Break if gradients are all zero
+            # This is oen of two escapes if epochs is set to -1 or
+            # target is max or min
+            gs = [p[0] for p in newGrads]
+            gs0 = self._session.run(tf.equal(gs, zeroGrad))
+            zeros = 0
+            for g in gs0:
+                if g: zeros += 1
+            if zeros == len(gs):
+                breakReason = "Zero Gradients"
                 break
 
             # Break if epochs limit reached
-            if counter >= epochs and epochs != -1: break
+            if counter >= epochs and epochs != -1:
+                breakReason = "Epoch Limit Reached"
+                break
 
             # Apply training step to find optimal
             self._session.run(applyNewGrads)
 
             # Debug printing for profiling
             if counter % debug_interval == 0 and debug and debug_interval > 0:
-                print "Time for Epoch {0} :: {1}\n".format(counter, time() - time0)
+                print "Time         :: {0}\n".format(time() - time0)
 
             # Increment counter
             counter += 1
@@ -709,7 +737,7 @@ class Network (object):
             print("CALCULATED OUT      :: {0}".format(calc(optimal).eval(session = self._session)[0]))
             print("TARGET OUT          :: {0}".format(lbl.eval(session = self._session)[0]))
             print("ERROR               :: {0}".format(absoluteError.eval(session = self._session)[0]))
-            print("EPOCHS              :: {0}".format(counter))
+            print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
         # </editor-fold>
         return final
 
