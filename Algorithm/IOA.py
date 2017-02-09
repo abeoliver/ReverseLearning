@@ -27,7 +27,6 @@ class InputOptimizer:
             loss_function="absolute_distance", shaping="none", activation="none",
             restrictions = {}, debug_interval = -1, error_tolerance = None,
             rangeGradientScalar = 10e10, evaluate = True):
-        # type: (list, int, float, bool, string, string, string, dict, int, float, float, bool) -> np.ndarray
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -201,9 +200,9 @@ class InputOptimizer:
         # Print final digest
         if debug:
             print("\nOPTIMAL INPUT       :: {0}".format(final[0]))
-            print("CALCULATED OUT      :: {0}".format(self.model.feed(optimal).eval(session = sess)))
-            print("TARGET OUT          :: {0}".format(label.eval(session = sess)[0]))
-            print("ERROR               :: {0}".format(absoluteError.eval(session = sess)[0]))
+            print("CALCULATED OUT      :: {0}".format(self.model.feed(final).eval(session = sess)))
+            print("TARGET OUT          :: {0}".format(label.eval(session = sess)))
+            print("ERROR               :: {0}".format(absoluteError.eval(session = sess)))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
 
         # If evaluation is requested, returned evaluated
@@ -360,10 +359,10 @@ def test():
     a = Adder()
 
     # Input Optimization
-    I = InputOptimizer(a, 4, 1)
-    print I.optimize([200.0], epochs = -1, learn_rate = .1,
-                     restrictions = {0: 9, 1: (-1.0, -2.0)},
-                     debug = True, debug_interval = 100,
-                     rangeGradientScalar = 1e20)
+    I = InputOptimizer(a, 3, 1)
+    I.optimize(100.0, epochs = -1, learn_rate = 1,
+                 restrictions = {1: (50.0, 60.0)}, error_tolerance = 1,
+                 debug = True, debug_interval = 1,
+                 rangeGradientScalar = 1e10)
 
 test()
