@@ -363,6 +363,6 @@ def test():
     I.optimize(100.0, epochs = -1, learn_rate = 1,
                  restrictions = {1: (50.0, 60.0)}, error_tolerance = 1,
                  debug = True, debug_interval = 1,
-                 rangeGradientScalar = 1e10)
+                 rangeGradientScalar = 1e12)
 
 test()

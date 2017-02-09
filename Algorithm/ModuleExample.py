@@ -26,7 +26,7 @@ n.initWeights(mode="ones")
 n.initBiases(mode="zeros")
 
 # Input Backprop
-n.ibp("min", epochs = 10000,
+n.ibp([100.0], epochs = 10000,
       learn_rate = .1, debug = True, debug_interval= -1,
       restrictions = {0: (-51, 51), 1: (100, 120), 2: 100},
       error_tolerance = .01, rangeGradientScalar = 1000000000.0)
