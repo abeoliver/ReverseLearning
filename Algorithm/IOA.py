@@ -190,24 +190,17 @@ class InputOptimizer:
                                        timer = time() - time0,
                                        gradients = newGrads)
 
-
-        # Finalize restricted output
-        # Get restricion vectors
-        rv = self._getRestrictionVectors(restrictions, startOptimal)
-        # Apply restriction vectors
-        final = self._applyRestrictionVector(optimal, rv).eval(session = sess)
-
         # Print final digest
         if debug:
-            print("\nOPTIMAL INPUT       :: {0}".format(final[0]))
-            print("CALCULATED OUT      :: {0}".format(self.model.feed(final).eval(session = sess)))
+            print("\nOPTIMAL INPUT       :: {0}".format([i.eval(session = sess) for i in optimal[0]]))
+            print("CALCULATED OUT      :: {0}".format(self.model.feed(optimal).eval(session = sess)))
             print("TARGET OUT          :: {0}".format(label.eval(session = sess)))
             print("ERROR               :: {0}".format(absoluteError.eval(session = sess)))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
 
         # If evaluation is requested, returned evaluated
         # Don't evaluate if not
-        if evaluate: return final
+        if evaluate: return optimal
         else: return optimal
 
     def feed(self, input_vector):
@@ -242,12 +235,19 @@ class InputOptimizer:
         def sig(z):
             return tf.nn.sigmoid(tf.constant(.000001) * z)
         # Restriction reshaping function
-        def f(x, b, t):
+        def restrict(x, b, t):
             q = sig(x)
             w = tf.mul(q, tf.cast(tf.sub(t, b), tf.float32))
             return tf.add(w, b, name = "restricted")
 
-        return f(inputs, restrictVector[0], restrictVector[1])
+        optimal = [[]]
+        for i in range(len(inputs[0])):
+            if type(inputs[0][i]) == tf.Variable:
+                optimal[0].append(restrict(inputs[0][i], restrictVector[0][i], restrictVector[1][i]))
+            else:
+                optimal[0].append(inputs[0][i])
+
+        return optimal
 
     def _raiseGrad(self, grad, scaler):
         """
@@ -307,13 +307,17 @@ class InputOptimizer:
             print "@ Epoch {0}".format(epochs)
         if optimal != None:
             # Evaluate optimal
-            op = optimal.eval(session=session)
+            op = []
+            for i in startOptimal[0]:
+                op.append(i.eval(session = session))
             print "Value        :: {0}".format(op)
         if restrictions != None and startOptimal != None and optimal != None:
             # Get restricion vectors
             rv = self._getRestrictionVectors(restrictions, startOptimal)
             # Apply restriction vectors
-            q = self._applyRestrictionVector(optimal, rv).eval(session=session)
+            q = []
+            for i in self._applyRestrictionVector(optimal, rv)[0]:
+                q.append(i.eval(session = session))
             print "Restricted   :: {0}".format(q)
             print "Evaluated    :: {0}".format(self.model.feed(q).eval(session = session))
         if absoluteError != None:
@@ -360,9 +364,9 @@ def test():
 
     # Input Optimization
     I = InputOptimizer(a, 3, 1)
-    I.optimize(100.0, epochs = -1, learn_rate = 1,
-                 restrictions = {1: (50.0, 60.0)}, error_tolerance = 1,
-                 debug = True, debug_interval = 1,
-                 rangeGradientScalar = 1e12)
+    I.optimize(1000.0, epochs = -1, learn_rate = .1,
+                 restrictions = {0: (130.0, 150.0)}, error_tolerance = .1,
+                 debug = True, debug_interval = 1000,
+                 rangeGradientScalar = 1e11)
 
 test()
