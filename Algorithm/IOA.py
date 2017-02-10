@@ -14,10 +14,9 @@ from warnings import filterwarnings
 filterwarnings("ignore")
 
 class InputOptimizer:
-    def __init__(self, model, ins, outs):
+    def __init__(self, model, ins):
         self.model = model
         self.ins = ins
-        self.outs = outs
 
     def clean(self, inp):
         """Cleans an input"""
@@ -109,7 +108,7 @@ class InputOptimizer:
         optimal = self._applyRestrictionVector(startOptimal, rangeRestrictedVectors)
 
         # Calculate output from the model (restrictions applied)
-        out = self.model.feed(optimal)
+        out = self.model(optimal)
 
         # Target label
         # If the target is max or min, don't set label
@@ -148,8 +147,7 @@ class InputOptimizer:
         counter = 0
         # If debug is on, print intial debug report
         if debug and debug_interval > 0:
-            self._printDebugStatus(sess, epochs = counter, startOptimal = startOptimal,
-                                   optimal = optimal, restrictions = restrictions)
+            self._printDebugStatus(sess, epochs = counter, startOptimal = startOptimal, optimal = optimal)
 
         # The main traing loop
         while True:
@@ -185,69 +183,54 @@ class InputOptimizer:
             # Debug printing
             if counter % debug_interval == 0 and debug and debug_interval > 0:
                 self._printDebugStatus(sess, epochs = counter, startOptimal = startOptimal,
-                                       optimal = optimal, restrictions = restrictions,
-                                       absoluteError = absoluteErrorEvaluated,
-                                       timer = time() - time0,
-                                       gradients = newGrads)
-
-
-        # Finalize restricted output
-        # Get restricion vectors
-        rv = self._getRestrictionVectors(restrictions, startOptimal)
-        # Apply restriction vectors
-        final = self._applyRestrictionVector(optimal, rv).eval(session = sess)
+                                       optimal = optimal, absoluteError = absoluteErrorEvaluated,
+                                       timer = time() - time0, gradients = newGrads)
 
         # Print final digest
         if debug:
-            print("\nOPTIMAL INPUT       :: {0}".format(final[0]))
-            print("CALCULATED OUT      :: {0}".format(self.model.feed(final).eval(session = sess)))
-            print("TARGET OUT          :: {0}".format(label.eval(session = sess)))
+            print("\nOPTIMAL INPUT       :: {0}".format([i.eval(session = sess) for i in optimal[0]]))
+            print("CALCULATED OUT      :: {0}".format(self.model(optimal).eval(session = sess)))
+            if label != None:
+                print("TARGET OUT          :: {0}".format(label.eval(session = sess)))
             print("ERROR               :: {0}".format(absoluteError.eval(session = sess)))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
 
         # If evaluation is requested, returned evaluated
         # Don't evaluate if not
-        if evaluate: return final
+        if evaluate: return optimal
         else: return optimal
 
     def feed(self, input_vector):
-        return self.model.feed(input_vector)
+        return self.model(input_vector)
 
     def _getRestrictionVectors(self, restrictions, vars):
         rVector = [[], []]
-
-        # Get bottom of a range to negate function
-        def b(x):
-            return (x - sig(x) * x) / (1 - sig(x))
-
-        # Slightly modified sigmoid function
-        def sig(z):
-            return tf.nn.sigmoid(tf.constant(.000001) * z)
 
         for i in range(len(vars[0])):
             if i in restrictions.keys():
                 if type(restrictions[i]) in [list, tuple]:
                     rVector[0].append(tf.cast(restrictions[i][0], tf.float32))
                     rVector[1].append(tf.cast(restrictions[i][1], tf.float32))
-                else:
-                    rVector[0].append(tf.cast(b(restrictions[i]), tf.float32))
-                    rVector[1].append(tf.cast(restrictions[i], tf.float32))
             else:
-                rVector[0].append(tf.cast(b(vars[0][i]), tf.float32))
-                rVector[1].append(tf.cast(vars[0][i], tf.float32))
+                rVector[0].append(None)
+                rVector[1].append(None)
         return rVector
 
     def _applyRestrictionVector(self, inputs, restrictVector):
-        # Slightly modified sigmoid function
-        def sig(z):
-            return tf.nn.sigmoid(tf.constant(.000001) * z)
         # Restriction reshaping function
-        def f(x, b, t):
-            q = sig(x)
+        def restrict(x, b, t):
+            q = tf.nn.sigmoid(x)
             w = tf.mul(q, tf.cast(tf.sub(t, b), tf.float32))
             return tf.add(w, b, name = "restricted")
 
-        return f(inputs, restrictVector[0], restrictVector[1])
+        optimal = [[]]
+        for i in range(len(inputs[0])):
+            if restrictVector[0][i] != None:
+                optimal[0].append(restrict(inputs[0][i], restrictVector[0][i], restrictVector[1][i]))
+            else:
+                optimal[0].append(inputs[0][i])
+
+        return optimal
 
     def _raiseGrad(self, grad, scaler):
         """
@@ -300,22 +283,34 @@ class InputOptimizer:
         return vlist
 
     def _printDebugStatus(self, session, epochs = None, startOptimal = None,
-                          optimal = None, restrictions = None, absoluteError = None,
+                          optimal = None, absoluteError = None,
                           timer = None, gradients = None):
         """Prints the debug information during training"""
         if epochs != None:
             print "@ Epoch {0}".format(epochs)
-        if optimal != None:
+        if startOptimal != None:
             # Evaluate optimal
-            op = optimal.eval(session=session)
-            print "Value        :: {0}".format(op)
-        if restrictions != None and startOptimal != None and optimal != None:
-            # Get restricion vectors
-            rv = self._getRestrictionVectors(restrictions, startOptimal)
-            # Apply restriction vectors
-            q = self._applyRestrictionVector(optimal, rv).eval(session=session)
-            print "Restricted   :: {0}".format(q)
-            print "Evaluated    :: {0}".format(self.model.feed(q).eval(session = session))
+            op = []
+            for i in startOptimal[0]:
+                op.append(i.eval(session = session))
+            if len(op) == 1:
+                print "Value        :: {0}".format(op[0])
+            else:
+                print "Value        :: {0}".format(op)
+        if optimal != None:
+            q = []
+            for i in optimal[0]:
+                q.append(i.eval(session = session))
+            if len(q) == 1:
+                print "Restricted   :: {0}".format(q[0])
+            else:
+                print "Restricted   :: {0}".format(q)
+            fed = self.model(q).eval(session = session)
+            if type(fed) in [list, tuple, np.array]:
+                if len(fed) == 1:
+                    print "Evaluated    :: {0}".format(fed[0])
+            else:
+                print "Evaluated    :: {0}".format(fed)
         if absoluteError != None:
             if type(absoluteError) in [list, tuple]:
                 print "Error        :: {0}".format(absoluteError[0])
@@ -350,19 +345,21 @@ class InputOptimizer:
                 zs.append(tf.constant(0.0))
         return zs
 
-class Adder:
-    def feed(self, input_vector):
-        return tf.reduce_sum(input_vector)
+class Models:
+    def f1(self, x):
+        return tf.reduce_sum(x)
+    def f2(self, x):
+        return tf.add(tf.add(-tf.square(x), tf.mul(tf.constant(4.0), x)), tf.constant(8.0))
 
 def test():
     # Example model
-    a = Adder()
+    a = Models()
 
     # Input Optimization
-    I = InputOptimizer(a, 3, 1)
-    I.optimize(100.0, epochs = -1, learn_rate = 1,
-                 restrictions = {1: (50.0, 60.0)}, error_tolerance = 1,
-                 debug = True, debug_interval = 1,
-                 rangeGradientScalar = 1e12)
+    I = InputOptimizer(a.f1, 3)
+    I.optimize(12.0, epochs = -1, learn_rate = .1,
+                 restrictions = {}, debug = True, debug_interval = 1,
+                 rangeGradientScalar = 1e11)
 
-test()
+if __name__ == "__main__":
+    test()
