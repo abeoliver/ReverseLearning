@@ -24,7 +24,8 @@ class IOA:
 
     def optimize(self, target, epochs = 1000, learn_rate = .01, debug = False,
                  loss_function="absolute_distance", restrictions = {}, debug_interval = -1,
-                 error_tolerance = None, rangeGradientScalar = 10e10, evaluate = True):
+                 error_tolerance = None, rangeGradientScalar = 10e10, gradientTolerance = 0.0,
+                 evaluate = True):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -70,7 +71,7 @@ class IOA:
         else:
             try: target = self.clean(target)
             except: raise ValueError("'{0}' is not a valid target".format(target))
-        # If the error tolerance wasn't, set it to the learning rate
+        # If the error tolerance wasn't set, set it to the learning rate
         if error_tolerance == None: error_tolerance = learn_rate
 
         # Get and format the range-restricted restrictions
@@ -97,8 +98,8 @@ class IOA:
         # Get the range-restriction vectors for startOptimal
         rangeRestrictedVectors = self._getRestrictionVectors(restrictions, startOptimal)
 
-        # For checking if all gradients are zero
-        zeroGrad = self._getZeroGrad(startOptimal)
+        # Tensor of the lowest gradients for use when checking if max / min / best is found
+        lowGrad = self._getLowGrad(startOptimal, gradientTolerance)
 
         # Finalize optimal
         optimal = self._applyRestrictionVector(startOptimal, rangeRestrictedVectors)
@@ -129,7 +130,7 @@ class IOA:
         # Gradient application
         applyNewGrads = optimizer.apply_gradients(newGrads)
 
-        # Get the absolute error (for DEBUG)
+        # Get the absolute error
         if target in ["max", "min"]:
             absoluteError = tf.constant(0.0)
         else:
@@ -161,8 +162,9 @@ class IOA:
                 break
 
             # Break if gradients are all zero
-            if self._checkGradients(newGrads, zeroGrad, sess):
-                breakReason = "Zero Gradients"
+            gradCheck = self._checkGradients(newGrads, lowGrad, sess)
+            if gradCheck:
+                breakReason = gradCheck
                 break
 
             # Break if epochs limit reached
@@ -178,8 +180,11 @@ class IOA:
 
             # Debug printing
             if counter % debug_interval == 0 and debug and debug_interval > 0:
+                # Dont show error for max and min
+                if target == "max" or target == "min": absErrorDebug = None
+                else: absErrorDebug = absoluteErrorEvaluated
                 self._printDebugStatus(sess, epochs = counter, startOptimal = startOptimal,
-                                       optimal = optimal, absoluteError = absoluteErrorEvaluated,
+                                       optimal = optimal, absoluteError = absErrorDebug,
                                        timer = time() - time0, gradients = newGrads)
 
         # Print final digest
@@ -322,40 +327,48 @@ class IOA:
         print ""
 
     def _checkGradients(self, gradients, checkAgainst, sess):
-        # Check equality
-        grads = [p[0] for p in gradients]
-        areSame = sess.run(tf.equal(grads, checkAgainst))
+        # Get gradients
+        grads = [abs(p[0]) for p in gradients]
+        # Check for infinite or nan grads
+        for g in grads:
+            if sess.run(tf.is_nan(g)): return "NaN Gradients"
+            elif sess.run(tf.is_inf(g)): return "Inf Gradients"
+        # Check for low grads
+        areSame = sess.run(tf.less_equal(grads, checkAgainst))
         # Check each truth value, add to counter if true
-        same = 0
+        low = 0
         for g in areSame:
-            if g: same += 1
+            if g: low += 1
         # If all are the same, return true, else false
-        if same == len(grads): return True
+        if low == len(grads): return "Low Gradients"
         else: return False
 
-    def _getZeroGrad(self, optimal):
-        """Creates a list of zeros for every variable in optimal for zero-grad checking"""
+    def _getLowGrad(self, optimal, gradTolerance):
+        """Creates a list of the lowest allowed gradient for every variable in optimal for lowest-grad checking"""
         zs = []
         for i in optimal[0]:
             if type(i) == tf.Variable:
-                zs.append(tf.constant(0.0))
+                zs.append(tf.constant(gradTolerance))
         return zs
 
 class Models:
     def f1(self, x):
         return tf.reduce_sum(x)
     def f2(self, x):
-        return tf.add(tf.add(-tf.square(x), tf.mul(tf.constant(4.0), x)), tf.constant(8.0))
+        return tf.add(tf.add(-tf.square(x), tf.mul(4.0, x)), 8.0)
+    def f3(self, x):
+        """Not differentiable for x <= 0"""
+        return tf.pow(x, tf.div(1.0, 2.0))
 
 def test():
     # Example model
     a = Models()
 
     # Input Optimization
-    I = InputOptimizer(a.f1, 3)
-    I.optimize(12.0, epochs = -1, learn_rate = .1,
-                 restrictions = {}, debug = True, debug_interval = 1,
-                 rangeGradientScalar = 1e11)
+    I = IOA(a.f2, 1)
+    I.optimize("max", epochs = -1, learn_rate = .1, error_tolerance = .2,
+                 restrictions = {}, debug = True, debug_interval = 100,
+                 rangeGradientScalar = 1e11, gradientTolerance = 5e-7)
 
 if __name__ == "__main__":
     test()
