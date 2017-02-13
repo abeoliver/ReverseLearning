@@ -13,7 +13,7 @@ from time import time
 from warnings import filterwarnings
 filterwarnings("ignore")
 
-class InputOptimizer:
+class IOA:
     def __init__(self, model, ins):
         self.model = model
         self.ins = ins
@@ -23,9 +23,8 @@ class InputOptimizer:
         return inp
 
     def optimize(self, target, epochs = 1000, learn_rate = .01, debug = False,
-            loss_function="absolute_distance", shaping="none", activation="none",
-            restrictions = {}, debug_interval = -1, error_tolerance = None,
-            rangeGradientScalar = 10e10, evaluate = True):
+                 loss_function="absolute_distance", restrictions = {}, debug_interval = -1,
+                 error_tolerance = None, rangeGradientScalar = 10e10, evaluate = True):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -40,9 +39,6 @@ class InputOptimizer:
                             - "absolute_distance" : absolute difference between label and output
                             - "cross_entropy"   : cross entropy function
                             - "quadratic_distance" : absolute distance squared
-            activation  : activation function to use
-                            - "none"            : no activiation function
-                            - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
             restrictions : a dictionary of range and type restrictions for the optimal
                          - Format: {index0 : restriction0, ..., indexN : restrictionN}
