@@ -13,7 +13,7 @@ from time import time
 from warnings import filterwarnings
 filterwarnings("ignore")
 
-class InputOptimizer:
+class IOA:
     def __init__(self, model, ins):
         self.model = model
         self.ins = ins
@@ -23,9 +23,9 @@ class InputOptimizer:
         return inp
 
     def optimize(self, target, epochs = 1000, learn_rate = .01, debug = False,
-            loss_function="absolute_distance", shaping="none", activation="none",
-            restrictions = {}, debug_interval = -1, error_tolerance = None,
-            rangeGradientScalar = 10e10, evaluate = True):
+                 loss_function="absolute_distance", restrictions = {}, debug_interval = -1,
+                 error_tolerance = None, rangeGradientScalar = 10e10, gradientTolerance = 0.0,
+                 startPreset = []):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -40,9 +40,6 @@ class InputOptimizer:
                             - "absolute_distance" : absolute difference between label and output
                             - "cross_entropy"   : cross entropy function
                             - "quadratic_distance" : absolute distance squared
-            activation  : activation function to use
-                            - "none"            : no activiation function
-                            - "sigmoid"         : sigmoid function
             debug       : on / off debug mode
             restrictions : a dictionary of range and type restrictions for the optimal
                          - Format: {index0 : restriction0, ..., indexN : restrictionN}
@@ -74,8 +71,11 @@ class InputOptimizer:
         else:
             try: target = self.clean(target)
             except: raise ValueError("'{0}' is not a valid target".format(target))
-        # If the error tolerance wasn't, set it to the learning rate
+        # If the error tolerance wasn't set, set it to the learning rate
         if error_tolerance == None: error_tolerance = learn_rate
+        # Chck for valid starting preset
+        if len(startPreset) != self.ins and startPreset != []:
+            raise ValueError("{0} is not a valid starting preset".format(startPreset))
 
         # Get and format the range-restricted restrictions
         rangeRestrictedIndexes = []
@@ -85,8 +85,11 @@ class InputOptimizer:
 
         # - DEFINE PARAMETERS -
         # Input
-        # Start with all variables at 0
-        startOptimal = [[tf.Variable(0.0) for i in range(self.ins)]]
+        # Start with mode set by startMode
+        if startPreset == []:
+            startOptimal = [[tf.Variable(0.0) for i in range(self.ins)]]
+        else:
+            startOptimal = [[tf.Variable(float(i)) for i in startPreset]]
 
         # Apply constant restrictions to startOptimal and collect restricted vars
         rangeRestrictedVars = []
@@ -101,8 +104,8 @@ class InputOptimizer:
         # Get the range-restriction vectors for startOptimal
         rangeRestrictedVectors = self._getRestrictionVectors(restrictions, startOptimal)
 
-        # For checking if all gradients are zero
-        zeroGrad = self._getZeroGrad(startOptimal)
+        # Tensor of the lowest gradients for use when checking if max / min / best is found
+        lowGrad = self._getLowGrad(startOptimal, gradientTolerance)
 
         # Finalize optimal
         optimal = self._applyRestrictionVector(startOptimal, rangeRestrictedVectors)
@@ -120,6 +123,11 @@ class InputOptimizer:
 
         # Get variables (exclude constants)
         vlist = self._getVarList(startOptimal)
+        # End if there are no variables to optimize
+        if len(vlist) == 0:
+            final = self._evalOptimal(optimal, sess)
+            sess.close()
+            return final
         # Create an optimizer of the given learning rate
         optimizer = tf.train.ProximalGradientDescentOptimizer(learn_rate)
         # Get the gradients from the loss function for each variable
@@ -133,7 +141,7 @@ class InputOptimizer:
         # Gradient application
         applyNewGrads = optimizer.apply_gradients(newGrads)
 
-        # Get the absolute error (for DEBUG)
+        # Get the absolute error
         if target in ["max", "min"]:
             absoluteError = tf.constant(0.0)
         else:
@@ -165,8 +173,9 @@ class InputOptimizer:
                 break
 
             # Break if gradients are all zero
-            if self._checkGradients(newGrads, zeroGrad, sess):
-                breakReason = "Zero Gradients"
+            gradCheck = self._checkGradients(newGrads, lowGrad, sess)
+            if gradCheck:
+                breakReason = gradCheck
                 break
 
             # Break if epochs limit reached
@@ -182,8 +191,11 @@ class InputOptimizer:
 
             # Debug printing
             if counter % debug_interval == 0 and debug and debug_interval > 0:
+                # Dont show error for max and min
+                if target == "max" or target == "min": absErrorDebug = None
+                else: absErrorDebug = absoluteErrorEvaluated
                 self._printDebugStatus(sess, epochs = counter, startOptimal = startOptimal,
-                                       optimal = optimal, absoluteError = absoluteErrorEvaluated,
+                                       optimal = optimal, absoluteError = absErrorDebug,
                                        timer = time() - time0, gradients = newGrads)
 
         # Print final digest
@@ -195,10 +207,14 @@ class InputOptimizer:
             print("ERROR               :: {0}".format(absoluteError.eval(session = sess)))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
 
-        # If evaluation is requested, returned evaluated
-        # Don't evaluate if not
-        if evaluate: return optimal
-        else: return optimal
+        # Finalize the optimal solution
+        final = self._evalOptimal(optimal, sess)
+
+        # Close the session, free the memory
+        sess.close()
+
+        # Return the final solution
+        return final
 
     def feed(self, input_vector):
         return self.model(input_vector)
@@ -225,7 +241,7 @@ class InputOptimizer:
 
         optimal = [[]]
         for i in range(len(inputs[0])):
-            if restrictVector[0][i] != None:
+            if len(restrictVector[0]) != 0 and restrictVector[0][i] != None:
                 optimal[0].append(restrict(inputs[0][i], restrictVector[0][i], restrictVector[1][i]))
             else:
                 optimal[0].append(inputs[0][i])
@@ -306,9 +322,8 @@ class InputOptimizer:
             else:
                 print "Restricted   :: {0}".format(q)
             fed = self.model(q).eval(session = session)
-            if type(fed) in [list, tuple, np.array]:
-                if len(fed) == 1:
-                    print "Evaluated    :: {0}".format(fed[0])
+            if type(fed) in [list, tuple, np.ndarray]:
+                print "Evaluated    :: {0}".format(fed[0])
             else:
                 print "Evaluated    :: {0}".format(fed)
         if absoluteError != None:
@@ -326,40 +341,56 @@ class InputOptimizer:
         print ""
 
     def _checkGradients(self, gradients, checkAgainst, sess):
-        # Check equality
-        grads = [p[0] for p in gradients]
-        areSame = sess.run(tf.equal(grads, checkAgainst))
+        # Get gradients
+        grads = [abs(p[0]) for p in gradients]
+        # Check for infinite or nan grads
+        for g in grads:
+            if sess.run(tf.is_nan(g)): return "NaN Gradients"
+            elif sess.run(tf.is_inf(g)): return "Inf Gradients"
+        # Check for low grads
+        areSame = sess.run(tf.less_equal(grads, checkAgainst))
         # Check each truth value, add to counter if true
-        same = 0
+        low = 0
         for g in areSame:
-            if g: same += 1
+            if g: low += 1
         # If all are the same, return true, else false
-        if same == len(grads): return True
+        if low == len(grads): return "Low Gradients"
         else: return False
 
-    def _getZeroGrad(self, optimal):
-        """Creates a list of zeros for every variable in optimal for zero-grad checking"""
+    def _getLowGrad(self, optimal, gradTolerance):
+        """Creates a list of the lowest allowed gradient for every variable in optimal for lowest-grad checking"""
         zs = []
         for i in optimal[0]:
             if type(i) == tf.Variable:
-                zs.append(tf.constant(0.0))
+                zs.append(tf.constant(gradTolerance))
         return zs
 
+    def _evalOptimal(self, optimal, session):
+        o = []
+        for i in optimal[0]:
+            o.append(i.eval(session = session))
+        return o
+
+
+# ------- EXAMPLE -------
 class Models:
     def f1(self, x):
         return tf.reduce_sum(x)
     def f2(self, x):
-        return tf.add(tf.add(-tf.square(x), tf.mul(tf.constant(4.0), x)), tf.constant(8.0))
-
+        return tf.add(tf.add(-tf.square(x), tf.mul(4.0, x)), 8.0)
+    def f3(self, x):
+        """Not differentiable for x <= 0"""
+        return tf.sub(tf.pow(tf.add(x, 4.0), tf.div(1.0, 2.0)), 3.0)
 def test():
     # Example model
     a = Models()
 
     # Input Optimization
-    I = InputOptimizer(a.f1, 3)
-    I.optimize(12.0, epochs = -1, learn_rate = .1,
-                 restrictions = {}, debug = True, debug_interval = 1,
-                 rangeGradientScalar = 1e11)
+    I = IOA(a.f3, 1)
+    I.optimize("min", epochs = -1, learn_rate = .1, error_tolerance = .2,
+               restrictions = {0: (-4, 1000.0)}, debug = True, debug_interval = 1,
+               rangeGradientScalar = 1e11, gradientTolerance = 5e-7,
+               startPreset = [])
 
 if __name__ == "__main__":
     test()
