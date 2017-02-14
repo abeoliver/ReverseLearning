@@ -25,7 +25,7 @@ class IOA:
     def optimize(self, target, epochs = 1000, learn_rate = .01, debug = False,
                  loss_function="absolute_distance", restrictions = {}, debug_interval = -1,
                  error_tolerance = None, rangeGradientScalar = 10e10, gradientTolerance = 0.0,
-                 evaluate = True):
+                 startPreset = []):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -73,6 +73,9 @@ class IOA:
             except: raise ValueError("'{0}' is not a valid target".format(target))
         # If the error tolerance wasn't set, set it to the learning rate
         if error_tolerance == None: error_tolerance = learn_rate
+        # Chck for valid starting preset
+        if len(startPreset) != self.ins and startPreset != []:
+            raise ValueError("{0} is not a valid starting preset".format(startPreset))
 
         # Get and format the range-restricted restrictions
         rangeRestrictedIndexes = []
@@ -82,8 +85,11 @@ class IOA:
 
         # - DEFINE PARAMETERS -
         # Input
-        # Start with all variables at 0
-        startOptimal = [[tf.Variable(0.0) for i in range(self.ins)]]
+        # Start with mode set by startMode
+        if startPreset == []:
+            startOptimal = [[tf.Variable(0.0) for i in range(self.ins)]]
+        else:
+            startOptimal = [[tf.Variable(float(i)) for i in startPreset]]
 
         # Apply constant restrictions to startOptimal and collect restricted vars
         rangeRestrictedVars = []
@@ -117,6 +123,11 @@ class IOA:
 
         # Get variables (exclude constants)
         vlist = self._getVarList(startOptimal)
+        # End if there are no variables to optimize
+        if len(vlist) == 0:
+            final = self._evalOptimal(optimal, sess)
+            sess.close()
+            return final
         # Create an optimizer of the given learning rate
         optimizer = tf.train.ProximalGradientDescentOptimizer(learn_rate)
         # Get the gradients from the loss function for each variable
@@ -196,10 +207,14 @@ class IOA:
             print("ERROR               :: {0}".format(absoluteError.eval(session = sess)))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
 
-        # If evaluation is requested, returned evaluated
-        # Don't evaluate if not
-        if evaluate: return optimal
-        else: return optimal
+        # Finalize the optimal solution
+        final = self._evalOptimal(optimal, sess)
+
+        # Close the session, free the memory
+        sess.close()
+
+        # Return the final solution
+        return final
 
     def feed(self, input_vector):
         return self.model(input_vector)
@@ -226,7 +241,7 @@ class IOA:
 
         optimal = [[]]
         for i in range(len(inputs[0])):
-            if restrictVector[0][i] != None:
+            if len(restrictVector[0]) != 0 and restrictVector[0][i] != None:
                 optimal[0].append(restrict(inputs[0][i], restrictVector[0][i], restrictVector[1][i]))
             else:
                 optimal[0].append(inputs[0][i])
@@ -307,9 +322,8 @@ class IOA:
             else:
                 print "Restricted   :: {0}".format(q)
             fed = self.model(q).eval(session = session)
-            if type(fed) in [list, tuple, np.array]:
-                if len(fed) == 1:
-                    print "Evaluated    :: {0}".format(fed[0])
+            if type(fed) in [list, tuple, np.ndarray]:
+                print "Evaluated    :: {0}".format(fed[0])
             else:
                 print "Evaluated    :: {0}".format(fed)
         if absoluteError != None:
@@ -351,6 +365,14 @@ class IOA:
                 zs.append(tf.constant(gradTolerance))
         return zs
 
+    def _evalOptimal(self, optimal, session):
+        o = []
+        for i in optimal[0]:
+            o.append(i.eval(session = session))
+        return o
+
+
+# ------- EXAMPLE -------
 class Models:
     def f1(self, x):
         return tf.reduce_sum(x)
@@ -358,17 +380,17 @@ class Models:
         return tf.add(tf.add(-tf.square(x), tf.mul(4.0, x)), 8.0)
     def f3(self, x):
         """Not differentiable for x <= 0"""
-        return tf.pow(x, tf.div(1.0, 2.0))
-
+        return tf.sub(tf.pow(tf.add(x, 4.0), tf.div(1.0, 2.0)), 3.0)
 def test():
     # Example model
     a = Models()
 
     # Input Optimization
-    I = IOA(a.f2, 1)
-    I.optimize("max", epochs = -1, learn_rate = .1, error_tolerance = .2,
-                 restrictions = {}, debug = True, debug_interval = 100,
-                 rangeGradientScalar = 1e11, gradientTolerance = 5e-7)
+    I = IOA(a.f3, 1)
+    I.optimize("min", epochs = -1, learn_rate = .1, error_tolerance = .2,
+               restrictions = {0: (-4, 1000.0)}, debug = True, debug_interval = 1,
+               rangeGradientScalar = 1e11, gradientTolerance = 5e-7,
+               startPreset = [])
 
 if __name__ == "__main__":
     test()
