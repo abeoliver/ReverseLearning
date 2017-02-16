@@ -25,7 +25,7 @@ class IOA:
     def optimize(self, target, epochs = 1000, learn_rate = .01, debug = False,
                  loss_function="absolute_distance", restrictions = {}, debug_interval = -1,
                  error_tolerance = None, rangeGradientScalar = 10e10, gradientTolerance = 0.0,
-                 startPreset = []):
+                 startPreset = [], returnDigest = False, digestInterval = 1):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -57,6 +57,9 @@ class IOA:
 
         # Reason for breaking the loop (zero grad, finished epocs, etc.)
         breakReason = None
+
+        # Initialize returnDigest
+        digest = []
 
         # Clean inputs
         # Ensure thar epochs is an integer
@@ -197,6 +200,13 @@ class IOA:
                 self._printDebugStatus(sess, epochs = counter, startOptimal = startOptimal,
                                        optimal = optimal, absoluteError = absErrorDebug,
                                        timer = time() - time0, gradients = newGrads)
+            if counter % digestInterval == 0:
+                if target == "max" or target == "min": absErrorDebug = None
+                else: absErrorDebug = absoluteErrorEvaluated
+                # Add to digest
+                digest = self._addDigest(digest, sess, epochs = counter, startOptimal = startOptimal,
+                                       optimal = optimal, absoluteError = absErrorDebug,
+                                       timer = time() - time0, gradients = newGrads)
 
         # Print final digest
         if debug:
@@ -207,6 +217,13 @@ class IOA:
             print("ERROR               :: {0}".format(absoluteError.eval(session = sess)))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
 
+        # Don't repeat final data point it digest
+        if counter % debug_interval != 0:
+            # Add to digest
+            digest = self._addDigest(digest, sess, epochs=counter, startOptimal=startOptimal,
+                                     optimal=optimal, absoluteError=absErrorDebug,
+                                     timer=time() - time0, gradients=newGrads)
+
         # Finalize the optimal solution
         final = self._evalOptimal(optimal, sess)
 
@@ -214,7 +231,10 @@ class IOA:
         sess.close()
 
         # Return the final solution
-        return final
+        if returnDigest:
+            return (final, digest)
+        else:
+            return final
 
     def feed(self, input_vector):
         return self.model(input_vector)
@@ -370,6 +390,49 @@ class IOA:
         for i in optimal[0]:
             o.append(i.eval(session = session))
         return o
+
+    def _addDigest(self, current, session, epochs = None, startOptimal = None,
+                    optimal = None, absoluteError = None, timer = None, gradients = None):
+        # Save dictionary
+        newDict = {}
+        if epochs != None:
+            newDict["epochs"] = epochs
+        if startOptimal != None:
+            # Evaluate optimal
+            op = []
+            for i in startOptimal[0]:
+                op.append(i.eval(session=session))
+            if len(op) == 1: newDict["value"] = op[0]
+            else: newDict["value"] = op
+        if optimal != None:
+            # Restricted
+            q = []
+            for i in optimal[0]:
+                q.append(i.eval(session = session))
+            if len(q) == 1: newDict["restricred"] = q[0]
+            else: newDict["restricred"] = q
+            # Evaluated
+            fed = self.model(q).eval(session = session)
+            if type(fed) in [list, tuple, np.ndarray]:
+                newDict["evaluated"] = fed[0]
+            else:
+                newDict["evaluated"] = fed
+        if absoluteError != None:
+            if type(absoluteError) in [list, tuple]:
+                newDict["error"] = absoluteError[0]
+                if len(absoluteError) != 1:
+                    # If the error is only one number then total error is not needed
+                    newDict["total-error"] = sum(absoluteError)
+            else:
+                newDict["error"] = absoluteError
+        if timer != None:
+            newDict["time"] = timer
+        if gradients != None:
+            newDict["gradients"] = [g[0].eval(session = session) for g in gradients]
+
+        # Finalized
+        current.append(newDict)
+        return current
 
 
 # ------- EXAMPLE -------
