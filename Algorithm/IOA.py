@@ -210,15 +210,40 @@ class IOA:
 
         # Print final digest
         if debug:
-            print("\nOPTIMAL INPUT       :: {0}".format([i.eval(session = sess) for i in optimal[0]]))
-            print("CALCULATED OUT      :: {0}".format(self.model(optimal).eval(session = sess)))
+            # Print final optimal (remove list endings if a single number)
+            evalOpt = [i.eval(session = sess) for i in optimal[0]]
+            if len(evalOpt) > 1:
+                print("\nOPTIMAL INPUT       :: {0}".format(evalOpt))
+            else:
+                print("\nOPTIMAL INPUT       :: {0}".format(evalOpt[0]))
+            # Print the calculated output (remove list endings if a single number)
+            calcOut = self.model(optimal).eval(session = sess)[0]
+            if len(calcOut) > 1:
+                print("CALCULATED OUT      :: {0}".format(calcOut))
+            else:
+                print("CALCULATED OUT      :: {0}".format(calcOut[0]))
+            # Print target
             if label != None:
                 print("TARGET OUT          :: {0}".format(label.eval(session = sess)))
-            print("ERROR               :: {0}".format(absoluteError.eval(session = sess)))
+            elif target in ["min", "max"]:
+                print("TARGET OUT          :: {0}".format(target))
+            err = absoluteError.eval(session = sess)
+            if type(err) in [list, tuple, np.ndarray]:
+                if len(err) > 1:
+                    print("ERROR               :: {0}".format(err))
+                    print("TOTAL ERROR         :: {0}".format(sum(err)))
+                else:
+                    print("ERROR               :: {0}".format(err[0]))
+            else:
+                print("ERROR               :: {0}".format(err))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
 
         # Don't repeat final data point it digest
         if counter % debug_interval != 0:
+            # Dont show error for max and min
+            if target == "max" or target == "min": absErrorDebug = None
+            else:
+                absErrorDebug = absoluteErrorEvaluated
             # Add to digest
             digest = self._addDigest(digest, sess, epochs=counter, startOptimal=startOptimal,
                                      optimal=optimal, absoluteError=absErrorDebug,
@@ -347,7 +372,7 @@ class IOA:
             else:
                 print("Evaluated    :: {0}".format(fed))
         if absoluteError != None:
-            if type(absoluteError) in [list, tuple]:
+            if type(absoluteError) in [list, tuple, np.array, np.ndarray]:
                 print("Error        :: {0}".format(absoluteError[0]))
                 if len(absoluteError) != 1:
                     # If the error is only one number then total error is not needed
@@ -402,27 +427,24 @@ class IOA:
             op = []
             for i in startOptimal[0]:
                 op.append(i.eval(session=session))
-            if len(op) == 1: newDict["value"] = op[0]
-            else: newDict["value"] = op
+            if len(op) == 1: newDict["optimal"] = op[0]
+            else: newDict["optimal"] = op
         if optimal != None:
             # Restricted
             q = []
             for i in optimal[0]:
                 q.append(i.eval(session = session))
-            if len(q) == 1: newDict["restricred"] = q[0]
-            else: newDict["restricred"] = q
+            if len(q) == 1: newDict["restricted"] = q[0]
+            else: newDict["restricted"] = q
             # Evaluated
             fed = self.model(q).eval(session = session)
             if type(fed) in [list, tuple, np.ndarray]:
-                newDict["evaluated"] = fed[0]
+                newDict["output"] = fed[0]
             else:
-                newDict["evaluated"] = fed
+                newDict["output"] = fed
         if absoluteError != None:
-            if type(absoluteError) in [list, tuple]:
-                newDict["error"] = absoluteError[0]
-                if len(absoluteError) != 1:
-                    # If the error is only one number then total error is not needed
-                    newDict["total-error"] = sum(absoluteError)
+            if type(absoluteError) in [list, tuple, np.array, np.ndarray]:
+                newDict["error"] = sum(absoluteError)[0]
             else:
                 newDict["error"] = absoluteError
         if timer != None:
@@ -440,7 +462,12 @@ def saveDigests(digests, filename):
     df.to_csv(filename, sep = "\t")
 
 def loadDigests(filename):
-    return pandas.read_csv(filename, sep = "\t")
+    df = pandas.read_csv(filename, sep = "\t")
+    cNames = list(df)
+    for cn in cNames:
+        if "Unnamed" in cn:
+            df = df.drop(cn, axis=1)
+    return df
 
 
 # ------- EXAMPLE -------
@@ -464,6 +491,7 @@ def test():
                                startPreset = [], returnDigest = True, digestInterval = 1)
     saveDigests(digest, "trial.ioa")
     d = loadDigests("trial.ioa")
+    print(d)
 
 if __name__ == "__main__":
     test()
