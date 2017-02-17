@@ -5,9 +5,9 @@
 # TODO Random start
 
 import tensorflow as tf
-from Network import Network
 import numpy as np
 from time import time
+import pandas
 
 # Suppress warnings
 from warnings import filterwarnings
@@ -256,7 +256,7 @@ class IOA:
         # Restriction reshaping function
         def restrict(x, b, t):
             q = tf.nn.sigmoid(x)
-            w = tf.mul(q, tf.cast(tf.sub(t, b), tf.float32))
+            w = tf.multiply(q, tf.cast(tf.subtract(t, b), tf.float32))
             return tf.add(w, b, name = "restricted")
 
         optimal = [[]]
@@ -275,7 +275,7 @@ class IOA:
             grad : (gradient, variable)
             scaler : scaler to raise gradient by
         """
-        return (tf.mul(grad[0], scaler), grad[1])
+        return (tf.multiply(grad[0], scaler), grad[1])
 
     def _getLossFunction(self, requested, target, label, out):
         # Use variations / throw errors for max and min
@@ -295,7 +295,7 @@ class IOA:
                 return tf.reduce_sum(tf.pow(label - out, 2))
         else:
             if target == "max":
-                return tf.mul(-1.0, out)
+                return tf.multiply(-1.0, out)
             elif target == "min":
                 return out
             else:
@@ -435,25 +435,35 @@ class IOA:
         return current
 
 
+def saveDigests(digests, filename):
+    df = pandas.DataFrame(digests)
+    df.to_csv(filename, sep = "\t")
+
+def loadDigests(filename):
+    return pandas.read_csv(filename, sep = "\t")
+
+
 # ------- EXAMPLE -------
 class Models:
     def f1(self, x):
         return tf.reduce_sum(x)
     def f2(self, x):
-        return tf.add(tf.add(-tf.square(x), tf.mul(4.0, x)), 8.0)
+        return tf.add(tf.add(-tf.square(x), tf.multiply(4.0, x)), 8.0)
     def f3(self, x):
         """Not differentiable for x <= 0"""
-        return tf.sub(tf.pow(tf.add(x, 4.0), tf.div(1.0, 2.0)), 3.0)
+        return tf.subtract(tf.pow(tf.add(x, 4.0), tf.div(1.0, 2.0)), 3.0)
 def test():
     # Example model
     a = Models()
 
     # Input Optimization
-    I = IOA(a.f3, 1)
-    I.optimize("min", epochs = -1, learn_rate = .1, error_tolerance = .2,
-               restrictions = {0: (-4, 1000.0)}, debug = True, debug_interval = 1,
-               rangeGradientScalar = 1e11, gradientTolerance = 5e-7,
-               startPreset = [])
+    I = IOA(a.f2, 1)
+    final, digest = I.optimize("min", epochs = 100, learn_rate = .1, error_tolerance = .2,
+                               restrictions = {}, debug = True, debug_interval = -1,
+                               rangeGradientScalar = 1e11, gradientTolerance = 5e-7,
+                               startPreset = [], returnDigest = True, digestInterval = 1)
+    saveDigests(digest, "trial.ioa")
+    d = loadDigests("trial.ioa")
 
 if __name__ == "__main__":
     test()

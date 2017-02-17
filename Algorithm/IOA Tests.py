@@ -2,7 +2,7 @@
 # ReverseLearning, 2017
 
 import tensorflow as tf
-from IOA import IOA
+from IOA import IOA, saveDigests, loadDigests
 import pandas
 
 # LINEAR -- f1(x) = 2x + 3
@@ -12,9 +12,4 @@ final, digest = I.optimize(21.0, epochs = 100, learn_rate = .1, error_tolerance 
                            restrictions = {}, debug = False, debug_interval = -1,
                            rangeGradientScalar = 1e11, gradientTolerance = 5e-7,
                            startPreset = [], returnDigest = True, digestInterval = 1)
-
-# Print final digest and answer
-print(final)
-print()
-for d in digest:
-    print(d)
+saveDigests(digest, "Linear-21.ioa")
