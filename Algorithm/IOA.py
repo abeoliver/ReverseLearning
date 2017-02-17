@@ -148,10 +148,10 @@ class IOA:
         if target in ["max", "min"]:
             absoluteError = tf.constant(0.0)
         else:
-            absoluteError = tf.abs(tf.sub(label, out))
+            absoluteError = tf.abs(tf.subtract(label, out))
 
         # Initialize the computation graph
-        sess.run(tf.initialize_all_variables())
+        sess.run(tf.global_variables_initializer())
 
         # - TRAIN -
         # A counter for counting epochs
@@ -323,42 +323,42 @@ class IOA:
                           timer = None, gradients = None):
         """Prints the debug information during training"""
         if epochs != None:
-            print "@ Epoch {0}".format(epochs)
+            print("@ Epoch {0}".format(epochs))
         if startOptimal != None:
             # Evaluate optimal
             op = []
             for i in startOptimal[0]:
                 op.append(i.eval(session = session))
             if len(op) == 1:
-                print "Value        :: {0}".format(op[0])
+                print("Value        :: {0}".format(op[0]))
             else:
-                print "Value        :: {0}".format(op)
+                print("Value        :: {0}".format(op))
         if optimal != None:
             q = []
             for i in optimal[0]:
                 q.append(i.eval(session = session))
             if len(q) == 1:
-                print "Restricted   :: {0}".format(q[0])
+                print("Restricted   :: {0}".format(q[0]))
             else:
-                print "Restricted   :: {0}".format(q)
+                print("Restricted   :: {0}".format(q))
             fed = self.model(q).eval(session = session)
             if type(fed) in [list, tuple, np.ndarray]:
-                print "Evaluated    :: {0}".format(fed[0])
+                print("Evaluated    :: {0}".format(fed[0]))
             else:
-                print "Evaluated    :: {0}".format(fed)
+                print("Evaluated    :: {0}".format(fed))
         if absoluteError != None:
             if type(absoluteError) in [list, tuple]:
-                print "Error        :: {0}".format(absoluteError[0])
+                print("Error        :: {0}".format(absoluteError[0]))
                 if len(absoluteError) != 1:
                     # If the error is only one number then total error is not needed
-                    print "Total Error  :: {0}".format( sum(absoluteError))
+                    print("Total Error  :: {0}".format( sum(absoluteError)))
             else:
-                print "Error        :: {0}".format(absoluteError)
+                print("Error        :: {0}".format(absoluteError))
         if timer != None:
-            print "Time         :: {0}".format(timer)
+            print("Time         :: {0}".format(timer))
         if gradients != None:
-            print "Gradients    :: {0}".format([g[0].eval(session = session) for g in gradients])
-        print ""
+            print("Gradients    :: {0}".format([g[0].eval(session = session) for g in gradients]))
+        print()
 
     def _checkGradients(self, gradients, checkAgainst, sess):
         # Get gradients

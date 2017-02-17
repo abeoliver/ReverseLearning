@@ -420,15 +420,15 @@ class Network (object):
                 return [ins, lbls]
 
         # Initialize variables
-        self._session.run(tf.initialize_all_variables())
+        self._session.run(tf.tf.global_variables_initializer())
 
         # Debug
         if not silence and not debug:
-            print "TRAINING",
+            print("TRAINING", endl = "")
         STATUS_INTERVAL = epochs / 10
 
         # Train network
-        with self._session .as_default():
+        with self._session.as_default():
             # Train 'epochs' times
             for i in range(epochs):
                 # Get data
@@ -449,7 +449,7 @@ class Network (object):
                 self._session.run(train_step, feed_dict = {x: batch_inps, y_:batch_outs})
                 # Print status bar (debug)
                 if not debug and not silence:
-                    if i % STATUS_INTERVAL == 0: print" * ",
+                    if i % STATUS_INTERVAL == 0: print(" * "),
 
             # Debug
             if not silence and not debug:
