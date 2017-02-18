@@ -25,7 +25,7 @@ class IOA:
     def optimize(self, target, epochs = 1000, learn_rate = .01, debug = False,
                  loss_function="absolute_distance", restrictions = {}, debug_interval = -1,
                  error_tolerance = None, rangeGradientScalar = 10e10, gradientTolerance = 0.0,
-                 startPreset = [], returnDigest = False, digestInterval = 1):
+                 startPreset = [], returnDigest = False, digestInterval = 1, title = ""):
         """
         Applies the Input Backprop Algorithm and returns an input with
         a target output
@@ -210,12 +210,14 @@ class IOA:
 
         # Print final digest
         if debug:
+            # Print title
+            print("\n{0}".format(title))
             # Print final optimal (remove list endings if a single number)
             evalOpt = [i.eval(session = sess) for i in optimal[0]]
             if len(evalOpt) > 1:
-                print("\nOPTIMAL INPUT       :: {0}".format(evalOpt))
+                print("OPTIMAL INPUT       :: {0}".format(evalOpt))
             else:
-                print("\nOPTIMAL INPUT       :: {0}".format(evalOpt[0]))
+                print("OPTIMAL INPUT       :: {0}".format(evalOpt[0]))
             # Print the calculated output (remove list endings if a single number)
             calcOut = self.model(optimal).eval(session = sess)[0]
             if len(calcOut) > 1:
