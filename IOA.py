@@ -219,23 +219,26 @@ class IOA:
             else:
                 print("OPTIMAL INPUT       :: {0}".format(evalOpt[0]))
             # Print the calculated output (remove list endings if a single number)
-            calcOut = self.model(optimal).eval(session = sess)[0]
-            if len(calcOut) > 1:
-                print("CALCULATED OUT      :: {0}".format(calcOut))
+            calcOut = self.model(optimal).eval(session = sess)
+            if type(calcOut) in [list, tuple, np.ndarray, np.array]:
+                if len(calcOut) > 1:
+                    print("CALCULATED OUT      :: {0}".format(calcOut[0]))
+                else:
+                    print("CALCULATED OUT      :: {0}".format(calcOut[0][0]))
             else:
-                print("CALCULATED OUT      :: {0}".format(calcOut[0]))
+                print("CALCULATED OUT      :: {0}".format(calcOut))
             # Print target
             if label != None:
                 print("TARGET OUT          :: {0}".format(label.eval(session = sess)))
+                err = absoluteError.eval(session=sess)
+                if type(err) in [list, tuple, np.ndarray]:
+                    if len(err) > 1:
+                        print("ERROR               :: {0}".format(err))
+                        print("TOTAL ERROR         :: {0}".format(sum(err)))
+                    else:
+                        print("ERROR               :: {0}".format(err[0]))
             elif target in ["min", "max"]:
                 print("TARGET OUT          :: {0}".format(target))
-            err = absoluteError.eval(session = sess)
-            if type(err) in [list, tuple, np.ndarray]:
-                if len(err) > 1:
-                    print("ERROR               :: {0}".format(err))
-                    print("TOTAL ERROR         :: {0}".format(sum(err)))
-                else:
-                    print("ERROR               :: {0}".format(err[0]))
             else:
                 print("ERROR               :: {0}".format(err))
             print("EPOCHS              :: {0} ({1})".format(counter, breakReason))
@@ -433,9 +436,9 @@ class IOA:
             else: newDict["optimal"] = op
         if optimal != None:
             # Restricted
-            q = []
+            q = [[]]
             for i in optimal[0]:
-                q.append(i.eval(session = session))
+                q[0].append(i.eval(session = session))
             if len(q) == 1: newDict["restricted"] = q[0]
             else: newDict["restricted"] = q
             # Evaluated
