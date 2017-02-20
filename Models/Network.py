@@ -348,7 +348,6 @@ class Network (object):
         
         # Biases
         b = [tf.Variable(self.b[i], name = "b") for i in range(len(self.b))]
-        self._session.run(tf.initialize_all_variables())
         
         # Predicted output
         def _calc(inp, n=0):
@@ -420,11 +419,11 @@ class Network (object):
                 return [ins, lbls]
 
         # Initialize variables
-        self._session.run(tf.tf.global_variables_initializer())
+        self._session.run(tf.global_variables_initializer())
 
         # Debug
         if not silence and not debug:
-            print("TRAINING", endl = "")
+            print("TRAINING", end = "")
         STATUS_INTERVAL = epochs / 10
 
         # Train network
