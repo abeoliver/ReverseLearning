@@ -3,13 +3,22 @@
 
 # Import dependencies
 import tensorflow as tf
-from random import randint
+from random import randint, uniform
+import numpy as np
+import IOA
 
 class LinearReg:
-    def __init__(self, inps):
+    def __init__(self, inps, w = None, b = None):
         self.inps = inps
-        self.w = [2.0 for i in range(inps)]
-        self.b = [3.0]
+
+        if w == None: self.w = [[0.0 for i in range(inps)]]
+        else: self.w = w
+
+        if b == None: self.b = [0.0]
+        else: self.b = b
+
+    def tensorFeed(self, x):
+        return tf.add(tf.reduce_sum(tf.multiply(x, self.w)), self.b)
 
     def feed(self, x):
         session = tf.Session()
@@ -35,22 +44,22 @@ class LinearReg:
 
         # Parameters
         # Input
-        x = tf.placeholder(tf.float32, [None, self.inps], name="x")
+        x = tf.placeholder(tf.float32, [None, 3], name="x")
 
         # Weights
-        w = tf.Variable(tf.ones([self.inps, 1]))
+        w = tf.Variable(self.w)
 
         # Biases
-        b = tf.Variable(1.0)
+        b = tf.Variable(self.b, dtype = tf.float32)
 
         # Calculated
-        y = tf.add(tf.matmul(x, w), b)
+        y = tf.add(tf.matmul(x, w, transpose_b = True), b)
 
         # Labels
         y_ = tf.placeholder(tf.float32, [None, 1], name="y_")
 
         # Loss
-        loss = tf.reduce_sum(tf.pow(tf.subtract(y, y_), 2)) * (1/(2*self.inps))
+        loss = tf.reduce_sum(tf.pow(tf.subtract(y, y_), 2)) * (1 / (2 * self.inps))
 
         # Optimizer
         train_step = tf.train.ProximalGradientDescentOptimizer(learn_rate).minimize(loss)
@@ -68,10 +77,10 @@ class LinearReg:
             # Train 'epochs' times
             for i in range(epochs):
                 # Get data
-                batch_inps = [d[0] for d in data]
-                batch_outs = [d[1] for d in data]
+                batch_inps = data[0]
+                batch_outs = data[1]
                 # Debug printing
-                if i % debug_interval == 0 and debug:
+                if i % debug_interval == 0 and debug and debug_interval != -1:
                     if not debug_only_loss:
                         print("Weights\n{0}".format(w.eval()))
                         print("Biases\n{0}".format(b.eval()))
@@ -94,17 +103,29 @@ class LinearReg:
 
 # EXAMPLE
 def test():
-    domain = []
+    # Get inputs
+    xs = []
     for i in range(100):
-        domain.append([randint(-100, 100) for i in range(3)])
-    data = [([float(d[0]), float(d[1]), float(d[2])],
-             [float(2 * d[0] + 2 * d[1] - 4 * d[2] - 3)])
-            for d in domain]
+        xs.append([randint(-100, 100) for i in range(3)])
+    # Calculate outputs with error
+    ys = []
+    for x in xs:
+        # Calculated expected
+        calculated = float(2 * x[0] + 2 * x[1] - 4 * x[2] - 3)
+        # Add some error
+        withError = calculated + uniform(-1.0, 1.0)
+        ys.append([withError])
+    #Finalize dataset
+    data = [xs, ys]
+
+    # Create and train model
     LR = LinearReg(3)
-    LR.train(data, learn_rate = .00001, epochs = 100000, debug = True, debug_interval = 10000)
-    print(LR.w)
-    print(LR.b)
-    print(LR.feed((2.0, 1.0)))
+    LR.train(data, learn_rate = .00001, epochs = 10000, debug = True, debug_interval = -1)
+
+    # Perform input backprop
+    i = IOA.IOA(LR.tensorFeed, 3)
+    final, digest = i.optimize(100.0, epochs = -1, debug = True, debug_interval = -1,
+                               returnDigest = True, learn_rate = .1, error_tolerance = .4)
 
 if __name__ == "__main__":
     test()

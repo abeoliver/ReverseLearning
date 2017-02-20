@@ -224,7 +224,10 @@ class IOA:
                 if len(calcOut) > 1:
                     print("CALCULATED OUT      :: {0}".format(calcOut[0]))
                 else:
-                    print("CALCULATED OUT      :: {0}".format(calcOut[0][0]))
+                    if type(calcOut[0]) in [list, tuple, np.ndarray, np.array]:
+                        print("CALCULATED OUT      :: {0}".format(calcOut[0][0]))
+                    else:
+                        print("CALCULATED OUT      :: {0}".format(calcOut[0]))
             else:
                 print("CALCULATED OUT      :: {0}".format(calcOut))
             # Print target
@@ -449,7 +452,11 @@ class IOA:
                 newDict["output"] = fed
         if absoluteError != None:
             if type(absoluteError) in [list, tuple, np.array, np.ndarray]:
-                newDict["error"] = sum(absoluteError)[0]
+                sumAbsError = sum(absoluteError)
+                if type(sumAbsError) in [list, tuple, np.ndarray]:
+                    newDict["error"] = sumAbsError[0]
+                else:
+                    newDict["error"] = sumAbsError
             else:
                 newDict["error"] = absoluteError
         if timer != None:
