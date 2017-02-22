@@ -4,6 +4,8 @@
 
 import numpy as np
 import tflearn
+import IOA
+import tensorflow as tf
 
 # Load CSV file, indicate that the first column represents labels
 from tflearn.data_utils import load_csv
@@ -36,14 +38,13 @@ net = tflearn.regression(net)
 # Define model
 model = tflearn.DNN(net)
 # Start training (apply gradient descent algorithm)
-model.fit(data, labels, n_epoch=10, batch_size=16, show_metric=True)
+model.fit(data, labels, n_epoch = 10, batch_size = 16, show_metric = False)
 
-# Let's create some data for DiCaprio and Winslet
-dicaprio = [3, 'Jack Dawson', 'male', 19, 0, 0, 'N/A', 5.0000]
-winslet = [1, 'Rose DeWitt Bukater', 'female', 17, 1, 2, 'N/A', 100.0000]
-# Preprocess data
-dicaprio, winslet = preprocess([dicaprio, winslet], to_ignore)
-# Predict surviving chances (class 1 results)
-pred = model.predict([dicaprio, winslet])
-print("DiCaprio Surviving Rate:", pred[0][1])
-print("Winslet Surviving Rate:", pred[1][1])
+test = preprocess([[3, 'Jack Dawson', 'male', 19, 0, 0, 'N/A', 5.0000]], to_ignore)
+testTF = [tf.constant(i) for i in test]
+print(model.predict([testTF]))
+
+# Apply IOA
+optimizer = IOA.IOA(model.predict, 6)
+final, digest = optimizer.optimize([0.0, 1.0], epochs = -1, debug = True, debug_interval = 1,
+                                   restrictions = {1: (0, 1), 2: (0, 100), 3: (0, 4), 4: (0, 2)})
