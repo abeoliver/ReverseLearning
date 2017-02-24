@@ -14,9 +14,10 @@ from warnings import filterwarnings
 filterwarnings("ignore")
 
 class IOA:
-    def __init__(self, model, ins):
+    def __init__(self, model, ins, tensorBoardPath = None):
         self.model = model
         self.ins = ins
+        self.tbPath = tensorBoardPath
 
     def clean(self, inp):
         """Cleans an input"""
@@ -90,9 +91,11 @@ class IOA:
         # Input
         # Start with mode set by startMode
         if startPreset == []:
-            startOptimal = [[tf.Variable(0.0) for i in range(self.ins)]]
+            startOptimal = [[tf.Variable(0.0, name = "StartOptimal-{0}".format(i))
+                             for i in range(self.ins)]]
         else:
-            startOptimal = [[tf.Variable(float(i)) for i in startPreset]]
+            startOptimal = [[tf.Variable(float(i), name = "StartOptimal-{0}".format(i))
+                             for i in startPreset]]
 
         # Apply constant restrictions to startOptimal and collect restricted vars
         rangeRestrictedVars = []
@@ -112,9 +115,12 @@ class IOA:
 
         # Finalize optimal
         optimal = self._applyRestrictionVector(startOptimal, rangeRestrictedVectors)
-
+        if self.tbPath != None:
+            for i in range(len(optimal[0])):
+                tf.summary.scalar("Optimal-{0}".format(i), optimal[0][i])
         # Calculate output from the model (restrictions applied)
         out = self.model(optimal)
+        if self.tbPath != None: tf.summary.histogram("Output", out)
 
         # Target label
         # If the target is max or min, don't set label
@@ -123,6 +129,7 @@ class IOA:
 
         # Loss function
         loss = self._getLossFunction(loss_function, target, label, out)
+        if self.tbPath != None: tf.summary.histogram("Loss", loss)
 
         # Get variables (exclude constants)
         vlist = self._getVarList(startOptimal)
@@ -135,20 +142,29 @@ class IOA:
         optimizer = tf.train.ProximalGradientDescentOptimizer(learn_rate)
         # Get the gradients from the loss function for each variable
         gradients = optimizer.compute_gradients(loss, var_list = vlist)
+        if self.tbPath != None: tf.summary.histogram("OriginalGradients", gradients)
 
         # Raise range-restricted variables
         newGrads = [self._raiseGrad(g, rangeGradientScalar)
                     if g[1] in rangeRestrictedVars else g
                     for g in gradients]
+        if self.tbPath != None: tf.summary.histogram("NewGradients", newGrads)
 
         # Gradient application
-        applyNewGrads = optimizer.apply_gradients(newGrads)
+        applyNewGrads = optimizer.apply_gradients(newGrads, name = "ApplyGradients")
 
         # Get the absolute error
         if target in ["max", "min"]:
             absoluteError = tf.constant(0.0)
         else:
-            absoluteError = tf.abs(tf.subtract(label, out))
+            absoluteError = tf.abs(tf.subtract(label, out), name = "AbsoluteError")
+        # Summarize the error
+        if self.tbPath != None: tf.summary.scalar("error", absoluteError)
+
+        # Merge and create FileWriter for TensorBoard
+        if self.tbPath != None:
+            mergeTensorBoard = tf.summary.merge_all()
+            writer = tf.summary.FileWriter(self.tbPath, sess.graph)
 
         # Initialize the computation graph
         sess.run(tf.global_variables_initializer())
@@ -191,6 +207,10 @@ class IOA:
 
             # Increment counter
             counter += 1
+
+            # Write summaries
+            if self.tbPath != None:
+                writer.add_summary(sess.run(mergeTensorBoard), counter)
 
             # Debug printing
             if counter % debug_interval == 0 and debug and debug_interval > 0:
@@ -374,7 +394,7 @@ class IOA:
                 print("Restricted   :: {0}".format(q[0]))
             else:
                 print("Restricted   :: {0}".format(q))
-            fed = self.model(q).eval(session = session)
+            fed = self.model(optimal).eval(session = session)
             if type(fed) in [list, tuple, np.ndarray]:
                 print("Evaluated    :: {0}".format(fed[0]))
             else:
@@ -468,7 +488,6 @@ class IOA:
         current.append(newDict)
         return current
 
-
 def saveDigests(digests, filename):
     df = pandas.DataFrame(digests)
     df.to_csv(filename, sep = "\t")
@@ -497,13 +516,12 @@ def test():
 
     # Input Optimization
     I = IOA(a.f2, 1)
-    final, digest = I.optimize("min", epochs = 100, learn_rate = .1, error_tolerance = .2,
+    final, digest = I.optimize("max", epochs = 100, learn_rate = .1, error_tolerance = .2,
                                restrictions = {}, debug = True, debug_interval = -1,
                                rangeGradientScalar = 1e11, gradientTolerance = 5e-7,
                                startPreset = [], returnDigest = True, digestInterval = 1)
     saveDigests(digest, "trial.ioa")
     d = loadDigests("trial.ioa")
-    print(d)
 
 if __name__ == "__main__":
     test()
