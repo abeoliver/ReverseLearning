@@ -1,0 +1,24 @@
+Linear Max -- f(x) = 2x + 3
+OPTIMAL INPUT       :: 6.999997615814209
+CALCULATED OUT      :: 16.999996185302734
+TARGET OUT          :: 17.0
+ERROR               :: [  3.81469727e-06]
+EPOCHS              :: 35 (Beat Error)
+
+Quadratic Negative Max -- f(x) = -x^2 - 3x + 18
+OPTIMAL INPUT       :: -1.4999995231628418
+CALCULATED OUT      :: 20.25
+TARGET OUT          :: max
+EPOCHS              :: 67 (Low Gradients)
+
+Quadratic Positive Min -- f(x) = x^2 - 8x + 15
+OPTIMAL INPUT       :: 3.999999523162842
+CALCULATED OUT      :: -1.0
+TARGET OUT          :: min
+EPOCHS              :: 71 (Low Gradients)
+
+Surface #1 -- f(x, y) = x ^ 2 + y ^ 2 - 100
+OPTIMAL INPUT       :: [1.9999995, -2.9999995]
+CALCULATED OUT      :: 4.547473508864641e-13
+TARGET OUT          :: min
+EPOCHS              :: 69 (Low Gradients)
