@@ -50,7 +50,6 @@ def linear17():
                                startPreset = [], returnDigest = True, digestInterval = 1,
                                title = title)
     saveDigests(digest, "Records/Linear-17.ioa")
-    return digest, final, title, 17.0
 
 # QUAD Positive -- f(x) = x^2 - 8x + 15
 def quadraticPositiveMin():
@@ -63,7 +62,6 @@ def quadraticPositiveMin():
                                startPreset = [], returnDigest = True, digestInterval = 1,
                                title = title)
     saveDigests(digest, "Records/Quad-Positive-Min.ioa")
-    return digest, final, title, "min"
 
 # QUAD Negative -- f(x) = -x^2 - 3x + 18
 def quadraticNegativeMax():
@@ -76,7 +74,6 @@ def quadraticNegativeMax():
                                startPreset = [], returnDigest = True, digestInterval = 1,
                                title = title)
     saveDigests(digest, "Records/Quad-Negative-Max.ioa")
-    return digest, final, title, "max"
 
 # Surface #1 -- f(x, y) = (x - 2) ^ 2 + (y + 3) ^ 2
 def surface1():
@@ -89,7 +86,6 @@ def surface1():
                                startPreset = [], returnDigest = True, digestInterval = 1,
                                title = title)
     saveDigests(digest, "Records/Surface-1.ioa")
-    return digest, final, title, "min"
 
 # Many Dimensional - f(a, b, c, d, e, f) = (a-2)^2 + (b+4)^2 + c^2 + (d-10)^2 + e^2 + (f+10)^2
 def manyVar():
@@ -101,13 +97,23 @@ def manyVar():
         return tf.add(p1, tf.add(p2, p3))
     I = IOA(f, 6)
     final, digest = I.optimize("min", epochs = 100, learn_rate = .1, error_tolerance = .15,
-                               restrictions = {}, debug = True, debug_interval = 1,
+                               restrictions = {}, debug = True, debug_interval = -1,
                                rangeGradientScalar = 1e11, gradientTolerance = 9e-6,
                                startPreset = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
                                returnDigest = True, digestInterval = 1,
                                title = title)
-    saveDigests(digest, "Records/Surface-1.ioa")
-    return digest, final, title, "min"
+    saveDigests(digest, "Records/High-D-Surface.ioa")
+
+# Increasing Sin -- f(x) = sin(4x) + x
+def incSin():
+    title = "Increasing Sin -- f(x) = sin(4x) + x"
+    def f(x): return tf.add(tf.sin(x), x)
+    I = IOA(f, 1)
+    final, digest = I.optimize("max", epochs = 100, learn_rate = .1, error_tolerance = .15,
+                               restrictions = {}, debug = True, debug_interval = 1,
+                               rangeGradientScalar = 1e11, gradientTolerance = 9e-6,
+                               returnDigest = True, digestInterval = 1, title = title)
+    saveDigests(digest, "Records/IncreasingSin.ioa")
 
 if __name__ == "__main__":
     funcs = []
@@ -115,5 +121,6 @@ if __name__ == "__main__":
     # funcs.append(quadraticNegativeMax)
     # funcs.append(quadraticPositiveMin)
     # funcs.append(surface1)
-    funcs.append(manyVar)
-    RUN(funcs, mode = "debug")
+    # funcs.append(manyVar)
+    funcs.append(incSin)
+    RUN(funcs)
