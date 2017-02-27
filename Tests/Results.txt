@@ -1,0 +1,742 @@
+
+Linear Max -- f(x) = 2x + 3
+OPTIMAL INPUT       :: 6.999997615814209
+CALCULATED OUT      :: 16.999996185302734
+TARGET OUT          :: 17.0
+ERROR               :: [  3.81469727e-06]
+EPOCHS              :: 35 (Beat Error)
+
+Quadratic Negative Max -- f(x) = -x^2 - 3x + 18
+OPTIMAL INPUT       :: -1.4999995231628418
+CALCULATED OUT      :: 20.25
+TARGET OUT          :: max
+EPOCHS              :: 67 (Low Gradients)
+
+Quadratic Positive Min -- f(x) = x^2 - 8x + 15
+OPTIMAL INPUT       :: 3.999999523162842
+CALCULATED OUT      :: -1.0
+TARGET OUT          :: min
+EPOCHS              :: 71 (Low Gradients)
+
+Surface #1 -- f(x, y) = x ^ 2 + y ^ 2 - 100
+OPTIMAL INPUT       :: [1.9999995, -2.9999995]
+CALCULATED OUT      :: 4.547473508864641e-13
+TARGET OUT          :: min
+EPOCHS              :: 69 (Low Gradients)
+
+6D -- f(a, b, c, d, e, f) = (a-2)^2 + (b+4)^2 + c^2 + (d-10)^2 + e^2 + (f+10)^2
+OPTIMAL INPUT       :: [1.9999996, -3.9999983, 3.2138772e-07, 9.9999971, 3.2138772e-07, -9.9999962]
+CALCULATED OUT      :: 2.585717404079979e-11
+TARGET OUT          :: min
+EPOCHS              :: 67 (Low Gradients)
+@ Epoch 0
+Value        :: 0.0
+Restricted   :: 0.0
+Evaluated    :: [ 0.]
+
+@ Epoch 1
+Value        :: 0.20000000298023224
+Restricted   :: 0.20000000298023224
+Evaluated    :: [ 0.39866933]
+Time         :: 0.033086299896240234
+Gradients    :: [-1.9800665]
+
+@ Epoch 2
+Value        :: 0.3980066776275635
+Restricted   :: 0.3980066776275635
+Evaluated    :: [ 0.78558826]
+Time         :: 0.023061513900756836
+Gradients    :: [-1.9218354]
+
+@ Epoch 3
+Value        :: 0.5901902318000793
+Restricted   :: 0.5901902318000793
+Evaluated    :: [ 1.14670932]
+Time         :: 0.0310821533203125
+Gradients    :: [-1.8308349]
+
+@ Epoch 4
+Value        :: 0.7732737064361572
+Restricted   :: 0.7732737064361572
+Evaluated    :: [ 1.4717555]
+Time         :: 0.03008103370666504
+Gradients    :: [-1.7156279]
+
+@ Epoch 5
+Value        :: 0.9448364973068237
+Restricted   :: 0.9448364973068237
+Evaluated    :: [ 1.75523758]
+Time         :: 0.029581069946289062
+Gradients    :: [-1.5858754]
+
+@ Epoch 6
+Value        :: 1.103424072265625
+Restricted   :: 1.103424072265625
+Evaluated    :: [ 1.99617934]
+Time         :: 0.025068283081054688
+Gradients    :: [-1.450542]
+
+@ Epoch 7
+Value        :: 1.2484782934188843
+Restricted   :: 1.2484782934188843
+Evaluated    :: [ 2.19698191]
+Time         :: 0.027573347091674805
+Gradients    :: [-1.316766]
+
+@ Epoch 8
+Value        :: 1.3801548480987549
+Restricted   :: 1.3801548480987549
+Evaluated    :: [ 2.36203766]
+Time         :: 0.025094032287597656
+Gradients    :: [-1.1894888]
+
+@ Epoch 9
+Value        :: 1.4991037845611572
+Restricted   :: 1.4991037845611572
+Evaluated    :: [ 2.49653506]
+Time         :: 0.04412055015563965
+Gradients    :: [-1.0716312]
+
+@ Epoch 10
+Value        :: 1.6062668561935425
+Restricted   :: 1.6062668561935425
+Evaluated    :: [ 2.60563779]
+Time         :: 0.03308820724487305
+Gradients    :: [-0.96453691]
+
+@ Epoch 11
+Value        :: 1.7027205228805542
+Restricted   :: 1.7027205228805542
+Evaluated    :: [ 2.69403124]
+Time         :: 0.03760194778442383
+Gradients    :: [-0.86845815]
+
+@ Epoch 12
+Value        :: 1.7895662784576416
+Restricted   :: 1.7895662784576416
+Evaluated    :: [ 2.76573133]
+Time         :: 0.030083894729614258
+Gradients    :: [-0.78297096]
+
+@ Epoch 13
+Value        :: 1.867863416671753
+Restricted   :: 1.867863416671753
+Evaluated    :: [ 2.82406259]
+Time         :: 0.0381007194519043
+Gradients    :: [-0.70728302]
+
+@ Epoch 14
+Value        :: 1.938591718673706
+Restricted   :: 1.938591718673706
+Evaluated    :: [ 2.87171412]
+Time         :: 0.033118486404418945
+Gradients    :: [-0.64044082]
+
+@ Epoch 15
+Value        :: 2.0026357173919678
+Restricted   :: 2.0026357173919678
+Evaluated    :: [ 2.91083312]
+Time         :: 0.03409075736999512
+Gradients    :: [-0.58145797]
+
+@ Epoch 16
+Value        :: 2.060781478881836
+Restricted   :: 2.060781478881836
+Evaluated    :: [ 2.94312143]
+Time         :: 0.040107011795043945
+Gradients    :: [-0.52938724]
+
+@ Epoch 17
+Value        :: 2.113720178604126
+Restricted   :: 2.113720178604126
+Evaluated    :: [ 2.96992207]
+Time         :: 0.0391077995300293
+Gradients    :: [-0.48335838]
+
+@ Epoch 18
+Value        :: 2.1620559692382812
+Restricted   :: 2.1620559692382812
+Evaluated    :: [ 2.99229527]
+Time         :: 0.04111075401306152
+Gradients    :: [-0.44259274]
+
+@ Epoch 19
+Value        :: 2.206315279006958
+Restricted   :: 2.206315279006958
+Evaluated    :: [ 3.01107907]
+Time         :: 0.037101030349731445
+Gradients    :: [-0.40640479]
+
+@ Epoch 20
+Value        :: 2.2469558715820312
+Restricted   :: 2.2469558715820312
+Evaluated    :: [ 3.02693772]
+Time         :: 0.037604331970214844
+Gradients    :: [-0.37419784]
+
+@ Epoch 21
+Value        :: 2.2843756675720215
+Restricted   :: 2.2843756675720215
+Evaluated    :: [ 3.04039955]
+Time         :: 0.05414748191833496
+Gradients    :: [-0.34545594]
+
+@ Epoch 22
+Value        :: 2.3189213275909424
+Restricted   :: 2.3189213275909424
+Evaluated    :: [ 3.05188704]
+Time         :: 0.05113816261291504
+Gradients    :: [-0.31973433]
+
+@ Epoch 23
+Value        :: 2.3508946895599365
+Restricted   :: 2.3508946895599365
+Evaluated    :: [ 3.06173897]
+Time         :: 0.04812765121459961
+Gradients    :: [-0.29665065]
+
+@ Epoch 24
+Value        :: 2.3805596828460693
+Restricted   :: 2.3805596828460693
+Evaluated    :: [ 3.07022953]
+Time         :: 0.04712271690368652
+Gradients    :: [-0.27587599]
+
+@ Epoch 25
+Value        :: 2.4081473350524902
+Restricted   :: 2.4081473350524902
+Evaluated    :: [ 3.07758045]
+Time         :: 0.04053187370300293
+Gradients    :: [-0.25712758]
+
+@ Epoch 26
+Value        :: 2.4338600635528564
+Restricted   :: 2.4338600635528564
+Evaluated    :: [ 3.08397269]
+Time         :: 0.05013561248779297
+Gradients    :: [-0.24016207]
+
+@ Epoch 27
+Value        :: 2.457876205444336
+Restricted   :: 2.457876205444336
+Evaluated    :: [ 3.08955479]
+Time         :: 0.06317424774169922
+Gradients    :: [-0.22476953]
+
+@ Epoch 28
+Value        :: 2.4803531169891357
+Restricted   :: 2.4803531169891357
+Evaluated    :: [ 3.0944488]
+Time         :: 0.0471341609954834
+Gradients    :: [-0.21076834]
+
+@ Epoch 29
+Value        :: 2.501430034637451
+Restricted   :: 2.501430034637451
+Evaluated    :: [ 3.09875584]
+Time         :: 0.04806041717529297
+Gradients    :: [-0.19800138]
+
+@ Epoch 30
+Value        :: 2.5212302207946777
+Restricted   :: 2.5212302207946777
+Evaluated    :: [ 3.10256028]
+Time         :: 0.06918549537658691
+Gradients    :: [-0.18633217]
+
+@ Epoch 31
+Value        :: 2.539863348007202
+Restricted   :: 2.539863348007202
+Evaluated    :: [ 3.10593224]
+Time         :: 0.057157039642333984
+Gradients    :: [-0.17564207]
+
+@ Epoch 32
+Value        :: 2.5574276447296143
+Restricted   :: 2.5574276447296143
+Evaluated    :: [ 3.10893059]
+Time         :: 0.05715751647949219
+Gradients    :: [-0.1658271]
+
+@ Epoch 33
+Value        :: 2.5740103721618652
+Restricted   :: 2.5740103721618652
+Evaluated    :: [ 3.11160541]
+Time         :: 0.04662609100341797
+Gradients    :: [-0.15679681]
+
+@ Epoch 34
+Value        :: 2.5896899700164795
+Restricted   :: 2.5896899700164795
+Evaluated    :: [ 3.11399841]
+Time         :: 0.06918478012084961
+Gradients    :: [-0.14847153]
+
+@ Epoch 35
+Value        :: 2.604537010192871
+Restricted   :: 2.604537010192871
+Evaluated    :: [ 3.11614537]
+Time         :: 0.0690467357635498
+Gradients    :: [-0.14078122]
+
+@ Epoch 36
+Value        :: 2.61861515045166
+Restricted   :: 2.61861515045166
+Evaluated    :: [ 3.11807704]
+Time         :: 0.05417895317077637
+Gradients    :: [-0.13366413]
+
+@ Epoch 37
+Value        :: 2.631981611251831
+Restricted   :: 2.631981611251831
+Evaluated    :: [ 3.1198194]
+Time         :: 0.05243802070617676
+Gradients    :: [-0.12706566]
+
+@ Epoch 38
+Value        :: 2.644688129425049
+Restricted   :: 2.644688129425049
+Evaluated    :: [ 3.12139487]
+Time         :: 0.0842275619506836
+Gradients    :: [-0.12093759]
+
+@ Epoch 39
+Value        :: 2.6567819118499756
+Restricted   :: 2.6567819118499756
+Evaluated    :: [ 3.12282276]
+Time         :: 0.09224462509155273
+Gradients    :: [-0.11523682]
+
+@ Epoch 40
+Value        :: 2.6683056354522705
+Restricted   :: 2.6683056354522705
+Evaluated    :: [ 3.12412]
+Time         :: 0.07820749282836914
+Gradients    :: [-0.10992515]
+
+@ Epoch 41
+Value        :: 2.679298162460327
+Restricted   :: 2.679298162460327
+Evaluated    :: [ 3.12530112]
+Time         :: 0.06316995620727539
+Gradients    :: [-0.10496849]
+
+@ Epoch 42
+Value        :: 2.6897950172424316
+Restricted   :: 2.6897950172424316
+Evaluated    :: [ 3.12637854]
+Time         :: 0.08322668075561523
+Gradients    :: [-0.10033625]
+
+@ Epoch 43
+Value        :: 2.699828624725342
+Restricted   :: 2.699828624725342
+Evaluated    :: [ 3.12736344]
+Time         :: 0.07520055770874023
+Gradients    :: [-0.096001089]
+
+@ Epoch 44
+Value        :: 2.7094287872314453
+Restricted   :: 2.7094287872314453
+Evaluated    :: [ 3.12826538]
+Time         :: 0.0631704330444336
+Gradients    :: [-0.091938436]
+
+@ Epoch 45
+Value        :: 2.7186226844787598
+Restricted   :: 2.7186226844787598
+Evaluated    :: [ 3.12909317]
+Time         :: 0.0812222957611084
+Gradients    :: [-0.088126123]
+
+@ Epoch 46
+Value        :: 2.727435350418091
+Restricted   :: 2.727435350418091
+Evaluated    :: [ 3.12985396]
+Time         :: 0.07691001892089844
+Gradients    :: [-0.084544241]
+
+@ Epoch 47
+Value        :: 2.7358896732330322
+Restricted   :: 2.7358896732330322
+Evaluated    :: [ 3.13055444]
+Time         :: 0.06918621063232422
+Gradients    :: [-0.081174791]
+
+@ Epoch 48
+Value        :: 2.744007110595703
+Restricted   :: 2.744007110595703
+Evaluated    :: [ 3.13120055]
+Time         :: 0.08222246170043945
+Gradients    :: [-0.07800144]
+
+@ Epoch 49
+Value        :: 2.75180721282959
+Restricted   :: 2.75180721282959
+Evaluated    :: [ 3.13179708]
+Time         :: 0.08272409439086914
+Gradients    :: [-0.075009406]
+
+@ Epoch 50
+Value        :: 2.759308099746704
+Restricted   :: 2.759308099746704
+Evaluated    :: [ 3.13234925]
+Time         :: 0.06821632385253906
+Gradients    :: [-0.072185159]
+
+@ Epoch 51
+Value        :: 2.766526699066162
+Restricted   :: 2.766526699066162
+Evaluated    :: [ 3.13286066]
+Time         :: 0.10223937034606934
+Gradients    :: [-0.06951654]
+
+@ Epoch 52
+Value        :: 2.7734782695770264
+Restricted   :: 2.7734782695770264
+Evaluated    :: [ 3.13333511]
+Time         :: 0.10729026794433594
+Gradients    :: [-0.066992462]
+
+@ Epoch 53
+Value        :: 2.780177593231201
+Restricted   :: 2.780177593231201
+Evaluated    :: [ 3.13377571]
+Time         :: 0.06818413734436035
+Gradients    :: [-0.064602613]
+
+@ Epoch 54
+Value        :: 2.786637783050537
+Restricted   :: 2.786637783050537
+Evaluated    :: [ 3.13418579]
+Time         :: 0.08222246170043945
+Gradients    :: [-0.062337816]
+
+@ Epoch 55
+Value        :: 2.7928714752197266
+Restricted   :: 2.7928714752197266
+Evaluated    :: [ 3.13456774]
+Time         :: 0.09024310111999512
+Gradients    :: [-0.060189545]
+
+@ Epoch 56
+Value        :: 2.7988903522491455
+Restricted   :: 2.7988903522491455
+Evaluated    :: [ 3.13492393]
+Time         :: 0.07119011878967285
+Gradients    :: [-0.058149934]
+
+@ Epoch 57
+Value        :: 2.8047053813934326
+Restricted   :: 2.8047053813934326
+Evaluated    :: [ 3.13525629]
+Time         :: 0.0912473201751709
+Gradients    :: [-0.056211829]
+
+@ Epoch 58
+Value        :: 2.81032657623291
+Restricted   :: 2.81032657623291
+Evaluated    :: [ 3.13556719]
+Time         :: 0.08974361419677734
+Gradients    :: [-0.054368675]
+
+@ Epoch 59
+Value        :: 2.815763473510742
+Restricted   :: 2.815763473510742
+Evaluated    :: [ 3.13585782]
+Time         :: 0.08114790916442871
+Gradients    :: [-0.052614391]
+
+@ Epoch 60
+Value        :: 2.8210248947143555
+Restricted   :: 2.8210248947143555
+Evaluated    :: [ 3.13613033]
+Time         :: 0.09225082397460938
+Gradients    :: [-0.050943315]
+
+@ Epoch 61
+Value        :: 2.8261191844940186
+Restricted   :: 2.8261191844940186
+Evaluated    :: [ 3.13638592]
+Time         :: 0.08325433731079102
+Gradients    :: [-0.049350441]
+
+@ Epoch 62
+Value        :: 2.831054210662842
+Restricted   :: 2.831054210662842
+Evaluated    :: [ 3.13662553]
+Time         :: 0.09926462173461914
+Gradients    :: [-0.04783082]
+
+@ Epoch 63
+Value        :: 2.8358373641967773
+Restricted   :: 2.8358373641967773
+Evaluated    :: [ 3.13685083]
+Time         :: 0.09981846809387207
+Gradients    :: [-0.046380103]
+
+@ Epoch 64
+Value        :: 2.84047532081604
+Restricted   :: 2.84047532081604
+Evaluated    :: [ 3.13706279]
+Time         :: 0.08222150802612305
+Gradients    :: [-0.044994295]
+
+@ Epoch 65
+Value        :: 2.8449747562408447
+Restricted   :: 2.8449747562408447
+Evaluated    :: [ 3.13726234]
+Time         :: 0.1148519515991211
+Gradients    :: [-0.043669522]
+
+@ Epoch 66
+Value        :: 2.849341630935669
+Restricted   :: 2.849341630935669
+Evaluated    :: [ 3.13745022]
+Time         :: 0.09827017784118652
+Gradients    :: [-0.042402208]
+
+@ Epoch 67
+Value        :: 2.8535819053649902
+Restricted   :: 2.8535819053649902
+Evaluated    :: [ 3.13762736]
+Time         :: 0.10428142547607422
+Gradients    :: [-0.041189194]
+
+@ Epoch 68
+Value        :: 2.857700824737549
+Restricted   :: 2.857700824737549
+Evaluated    :: [ 3.13779473]
+Time         :: 0.1118323802947998
+Gradients    :: [-0.04002738]
+
+@ Epoch 69
+Value        :: 2.861703634262085
+Restricted   :: 2.861703634262085
+Evaluated    :: [ 3.13795257]
+Time         :: 0.1057889461517334
+Gradients    :: [-0.038913906]
+
+@ Epoch 70
+Value        :: 2.8655951023101807
+Restricted   :: 2.8655951023101807
+Evaluated    :: [ 3.13810205]
+Time         :: 0.11230230331420898
+Gradients    :: [-0.037846148]
+
+@ Epoch 71
+Value        :: 2.869379758834839
+Restricted   :: 2.869379758834839
+Evaluated    :: [ 3.1382432]
+Time         :: 0.08322715759277344
+Gradients    :: [-0.036821723]
+
+@ Epoch 72
+Value        :: 2.8730618953704834
+Restricted   :: 2.8730618953704834
+Evaluated    :: [ 3.13837695]
+Time         :: 0.12433695793151855
+Gradients    :: [-0.035838246]
+
+@ Epoch 73
+Value        :: 2.876645803451538
+Restricted   :: 2.876645803451538
+Evaluated    :: [ 3.13850379]
+Time         :: 0.09684228897094727
+Gradients    :: [-0.034893572]
+
+@ Epoch 74
+Value        :: 2.8801350593566895
+Restricted   :: 2.8801350593566895
+Evaluated    :: [ 3.13862395]
+Time         :: 0.11681652069091797
+Gradients    :: [-0.033985794]
+
+@ Epoch 75
+Value        :: 2.8835337162017822
+Restricted   :: 2.8835337162017822
+Evaluated    :: [ 3.13873792]
+Time         :: 0.10328340530395508
+Gradients    :: [-0.033112824]
+
+@ Epoch 76
+Value        :: 2.886845111846924
+Restricted   :: 2.886845111846924
+Evaluated    :: [ 3.13884616]
+Time         :: 0.1253359317779541
+Gradients    :: [-0.032273054]
+
+@ Epoch 77
+Value        :: 2.8900723457336426
+Restricted   :: 2.8900723457336426
+Evaluated    :: [ 3.13894916]
+Time         :: 0.10622024536132812
+Gradients    :: [-0.031464815]
+
+@ Epoch 78
+Value        :: 2.893218755722046
+Restricted   :: 2.893218755722046
+Evaluated    :: [ 3.13904691]
+Time         :: 0.12132787704467773
+Gradients    :: [-0.030686557]
+
+@ Epoch 79
+Value        :: 2.896287441253662
+Restricted   :: 2.896287441253662
+Evaluated    :: [ 3.13913989]
+Time         :: 0.11834478378295898
+Gradients    :: [-0.029936731]
+
+@ Epoch 80
+Value        :: 2.8992810249328613
+Restricted   :: 2.8992810249328613
+Evaluated    :: [ 3.13922834]
+Time         :: 0.11634445190429688
+Gradients    :: [-0.029214084]
+
+@ Epoch 81
+Value        :: 2.9022023677825928
+Restricted   :: 2.9022023677825928
+Evaluated    :: [ 3.13931274]
+Time         :: 0.11919021606445312
+Gradients    :: [-0.028517246]
+
+@ Epoch 82
+Value        :: 2.9050540924072266
+Restricted   :: 2.9050540924072266
+Evaluated    :: [ 3.13939309]
+Time         :: 0.10929536819458008
+Gradients    :: [-0.027845025]
+
+@ Epoch 83
+Value        :: 2.9078385829925537
+Restricted   :: 2.9078385829925537
+Evaluated    :: [ 3.13946962]
+Time         :: 0.13035225868225098
+Gradients    :: [-0.027196288]
+
+@ Epoch 84
+Value        :: 2.9105582237243652
+Restricted   :: 2.9105582237243652
+Evaluated    :: [ 3.13954282]
+Time         :: 0.16040682792663574
+Gradients    :: [-0.026569963]
+
+@ Epoch 85
+Value        :: 2.913215160369873
+Restricted   :: 2.913215160369873
+Evaluated    :: [ 3.13961267]
+Time         :: 0.12714314460754395
+Gradients    :: [-0.025964975]
+
+@ Epoch 86
+Value        :: 2.915811538696289
+Restricted   :: 2.915811538696289
+Evaluated    :: [ 3.13967919]
+Time         :: 0.13536834716796875
+Gradients    :: [-0.025380433]
+
+@ Epoch 87
+Value        :: 2.918349504470825
+Restricted   :: 2.918349504470825
+Evaluated    :: [ 3.13974285]
+Time         :: 0.12233090400695801
+Gradients    :: [-0.02481544]
+
+@ Epoch 88
+Value        :: 2.9208309650421143
+Restricted   :: 2.9208309650421143
+Evaluated    :: [ 3.13980389]
+Time         :: 0.12336134910583496
+Gradients    :: [-0.024269044]
+
+@ Epoch 89
+Value        :: 2.923257827758789
+Restricted   :: 2.923257827758789
+Evaluated    :: [ 3.13986206]
+Time         :: 0.13309073448181152
+Gradients    :: [-0.02374053]
+
+@ Epoch 90
+Value        :: 2.9256319999694824
+Restricted   :: 2.9256319999694824
+Evaluated    :: [ 3.13991785]
+Time         :: 0.11533761024475098
+Gradients    :: [-0.023229003]
+
+@ Epoch 91
+Value        :: 2.927954912185669
+Restricted   :: 2.927954912185669
+Evaluated    :: [ 3.13997126]
+Time         :: 0.1233375072479248
+Gradients    :: [-0.022733867]
+
+@ Epoch 92
+Value        :: 2.9302282333374023
+Restricted   :: 2.9302282333374023
+Evaluated    :: [ 3.14002228]
+Time         :: 0.12787652015686035
+Gradients    :: [-0.022254407]
+
+@ Epoch 93
+Value        :: 2.9324536323547363
+Restricted   :: 2.9324536323547363
+Evaluated    :: [ 3.14007139]
+Time         :: 0.12233328819274902
+Gradients    :: [-0.021789968]
+
+@ Epoch 94
+Value        :: 2.9346325397491455
+Restricted   :: 2.9346325397491455
+Evaluated    :: [ 3.14011836]
+Time         :: 0.14890265464782715
+Gradients    :: [-0.021339893]
+
+@ Epoch 95
+Value        :: 2.9367666244506836
+Restricted   :: 2.9367666244506836
+Evaluated    :: [ 3.14016342]
+Time         :: 0.1293494701385498
+Gradients    :: [-0.020903587]
+
+@ Epoch 96
+Value        :: 2.938857078552246
+Restricted   :: 2.938857078552246
+Evaluated    :: [ 3.14020681]
+Time         :: 0.16845989227294922
+Gradients    :: [-0.020480573]
+
+@ Epoch 97
+Value        :: 2.9409050941467285
+Restricted   :: 2.9409050941467285
+Evaluated    :: [ 3.1402483]
+Time         :: 0.12135815620422363
+Gradients    :: [-0.020070255]
+
+@ Epoch 98
+Value        :: 2.9429121017456055
+Restricted   :: 2.9429121017456055
+Evaluated    :: [ 3.14028811]
+Time         :: 0.15349578857421875
+Gradients    :: [-0.019672155]
+
+@ Epoch 99
+Value        :: 2.9448792934417725
+Restricted   :: 2.9448792934417725
+Evaluated    :: [ 3.1403265]
+Time         :: 0.13837385177612305
+Gradients    :: [-0.019285738]
+
+@ Epoch 100
+Value        :: 2.946807861328125
+Restricted   :: 2.946807861328125
+Evaluated    :: [ 3.14036322]
+Time         :: 0.17528271675109863
+Gradients    :: [-0.018910646]
+
+
+Increasing Sin -- f(x) = sin(4x) + x
+OPTIMAL INPUT       :: 2.946807861328125
+CALCULATED OUT      :: 3.1403632164001465
+TARGET OUT          :: max
+EPOCHS              :: 100 (Epoch Limit Reached)
