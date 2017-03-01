@@ -1,30 +1,21 @@
-# **ReverseLearning**
+# **ReverseLearning - The Input Optimization Algorithm**
 ### Abraham Oliver and Jadan Ercoli
 
-#### Who we are
-Two high school students (with no formal training) who are passionate about computer science and the world around us.
-
-#### Goal
-We want to return to the Intel International Science and Engineering Fair and place in the Systems Software catagory
-
-#### This year's project theme: **Neural Networks and their Inverses**
-* Can a possible input be engineered from a desired output?
-* What are the applications of inverse networks?
-* What are the methods?
+A layer for Stochastic Gradient Descent for finding inputs within an input space that produce desired results in a machine learning model or mathematical function.
 
 #### Required packages
-* Python version 2.7
-    * Tensorflow
-    * Numpy
-    * Matplotlib
-* Jupyter IPython
+* Python version (3.5)
+    * Tensorflow (1.0)
+    * Numpy (1.12.0)
+    * Pandas (0.19.2)
+    * Plotly (2.0.1)
+    * Jupyter (1.0.0)
+* Jupyter (4.3.0) with Python3 Kernel
+
+#### Abstract
+   Statistics and artificial intelligence have long been concerned with summarizing data and predicting the future based on the past. These two fields have shown to be very effective in many fields such as natural language processing, financial predicting, and image recognition and have revolutionized the way in which the world works. However, what if an individual didn’t want to only predict their future, but to shape it? Instead of analyzing his or her current situation and predicting his or her future state, they wish to perform actions now that get them to a desired future. As a solution, we propose the Input Optimization Algorithm (IOA). The IOA finds and refines inputs that produces desired outputs. Imagine that a pharmaceuticals company  has a machine learning model that predicts the effectiveness of a new drug based on a patient’s weight, age, and dosage, which is not a simple function. Of course, any user would desire 100% effectiveness. With normal machine learning methods, the doctors would have to guess a dosage, check the predicted effectiveness, and use trial-and-error to find the dosage with the highest effectiveness. IOA, however, more robustly solves this problem. The doctors can set fixed age and weight and let IOA find the dosage. After the run, IOA will produce the optimal dosage. IOA also functions on a narrowed solution space. Certain factors can be set to plausible ranges, so as to produce meaningful results. Instead of predicting the future, IOA perfects it.
 
 #### Contact Us
-Are you an expert in neural networks?  
-Are you interested in giving advice to aspiring, young coders?  
-Are you interested in reverse networks?  
-Do you have any other questions?  
-
 ###### Abe Oliver
 Github : [github.com/abeoliver](https://github.com/abeoliver)
 
