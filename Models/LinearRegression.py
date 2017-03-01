@@ -126,6 +126,7 @@ def test():
     i = IOA.IOA(LR.tensorFeed, 3)
     final, digest = i.optimize(100.0, epochs = -1, debug = True, debug_interval = -1,
                                returnDigest = True, learn_rate = .1, error_tolerance = .4)
+    print(final)
 
 if __name__ == "__main__":
     test()
