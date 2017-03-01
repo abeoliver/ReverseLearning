@@ -1,6 +1,0 @@
-
-Quadratic Positive Min -- f(x) = x^2 - 8x + 15
-OPTIMAL INPUT       :: 3.999999523162842
-CALCULATED OUT      :: -1.0
-TARGET OUT          :: min
-EPOCHS              :: 71 (Low Gradients)
