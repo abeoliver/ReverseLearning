@@ -8,6 +8,22 @@
     <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+    <style>
+        .row {
+              display: table;
+              border-collapse: collapse;
+              margin: auto;
+              width: 120%;}
+        .item {
+            display: table-cell;
+            vertical-align: middle;}
+        .item img {
+          display: block;
+          width: 120%;
+          height: auto;
+          vertical-align: middle;
+        }
+    </style>
   </head>
   <body>
     <section class="page-header">
@@ -27,11 +43,14 @@
 
         <h3><a id="sgd" class="anchor" href="#sgd" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Gradient Descent</h3>
         <p> Gradient descent is a class of iterative algorithms that change desired parameters in the opposite (negative) direction of their gradients. The algorithm takes the partial derivative of each parameter with respect to a function and then either raises or decreases each parameter to minimize the function. Usually, this algorithm is used to change the weights, biases, or other parameters of machine learning models like artificial neural networks and linear regressions with respect to their loss functions, functions that describe the error of the model. <br><br>
-            As an example, imagine that a parabola is the graph of a loss function for a function of one parameter. The x-axis represents the value of the parameter and the y-axis is the loss with lower y-values signifying lower loss. Now imagine that we place a small ball randomly on the surface. If we imagine this system on earth, classical physics say that the ball will roll down the slope because of the pull of gravity. Similarly, gradient descent uses calculus to determine which direction is “down” and “rolls the ball” in that direction. Just like in <b>Figure 1</b>, the ball moves to a new point that now has a lower loss, and has “learned” better parameters. The algorithm repeats this step hundreds, thousands, or even millions of times until the ball is sitting at the very bottom, the minimum, where there is no more down, like in <b>Figure 2</b>. This algorithm functions the same way in systems of 3 or more variables. <b>Figure 3</b>, shows the loss function from a linear regression model, a function of two parameters.<br><br></p>
-        <div style="white-space: nowrap;">
-            <img src="Graphs/Fig1.png">
-            <img src="Graphs/Fig2.png">
-            <img src="Graphs/Fig3.png">
+            As an example, imagine that a parabola is the graph of a loss function for a function of one parameter. The x-axis represents the value of the parameter and the y-axis is the loss with lower y-values signifying lower loss. Now imagine that we place a small ball randomly on the surface. If we imagine this system on earth, classical physics say that the ball will roll down the slope because of the pull of gravity. Similarly, gradient descent uses calculus to determine which direction is “down” and “rolls the ball” in that direction. Just like in <b>Figure 1</b>, the ball moves to a new point that now has a lower loss, and has “learned” better parameters. The algorithm repeats this step hundreds, thousands, or even millions of times until the ball is sitting at the very bottom, the minimum, where there is no more down, like in <b>Figure 2</b>. This algorithm functions the same way in systems of 3 or more variables.<br><br></p>
+        <div class="row">
+          <div class="item">
+            <img src="Graphs/Fig1.png" />
+          </div>
+          <div class="item">
+            <img src="Graphs/Fig2.png" />
+          </div>
         </div>
         <p>
             There are many algorithms built on top of gradient descent that were designed to combat certain challenges that are faced in many scenarios. The most used variation is Stochastic Gradient Descent (SGD) which is very true to the original algorithm but deals with training data in certain ways. Most other variations are built off of SGD. The Momentum Method for SGD which increases the “speed” of the changing parameters when the gradients are steeper to combat SGD’s downfalls with steep “ravines” in the loss function. The Adagrad variation adapts the learning rate to the frequency of a given parameter, making larger steps for for infrequent parameters and taking smaller steps for frequent parameters. The Adaptive Moment Estimation (Adam) variation adapts the learning rate (similar to Adagrad) as well as adapting the learning rates (like Momentum)</p>
