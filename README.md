@@ -20,12 +20,12 @@ The code in this repository has not been linted, extensively tested, or extensiv
 
 #### Contact Us
 ###### Abe Oliver
-Github : [github.com/abeoliver](https://github.com/abeoliver)
+Github : [@abeoliver](https://github.com/abeoliver)
 
 Email : _abeoliver.116@gmail.com_  
 
 ###### Jadan Ercoli  
-Github : [github.com/jadanercoli](https://github.com/jadanercoli)
+Github : [@jadanercoli](https://github.com/jadanercoli)
 
 Email : _docjadan@yahoo.com_
 
