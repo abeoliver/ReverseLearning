@@ -3,6 +3,9 @@
 
 A layer for Stochastic Gradient Descent for finding inputs within an input space that produce desired results in a machine learning model or mathematical function.
 
+#### Note
+The code in this repository has not been linted, extensively tested, or extensively commented. Please be patient was we go through and clean up the mess we have made.
+
 #### Required packages
 * Python version (3.5)
     * Tensorflow (1.0)
