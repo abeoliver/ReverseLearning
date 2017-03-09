@@ -1,9 +1,7 @@
 # Input Optimization Algorithm
 # ReverseLearning, 2017
 
-# TODO Test ranging
-# TODO Random start
-
+# Import dependencies
 import tensorflow as tf
 import numpy as np
 from time import time
@@ -15,12 +13,19 @@ filterwarnings("ignore")
 
 class IOA:
     def __init__(self, model, ins, tensorBoardPath = None):
+        # The model to calculate outputs with
         self.model = model
+        # Number of inputs
         self.ins = ins
+        # Path to save tensorboard files (optional)
         self.tbPath = tensorBoardPath
 
     def clean(self, inp):
-        """Cleans an input"""
+        """
+        Cleans an input
+        
+        TODO: Implememnt
+        """
         return inp
 
     def optimize(self, target, epochs = 1000, learn_rate = .01, debug = False,
